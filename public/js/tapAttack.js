@@ -128,6 +128,14 @@ var roundProto = {
    //this is in its own object, for easier reasoning about
 };
 
+///////////////////////////////
+//  Gameplay Playback State  //
+///////////////////////////////
+
+TapApp.playbackIndex = 0;
+TapApp.playbackStartTime = 0;
+TapApp.playbackNoteIndex = 0;
+
 /////////////////
 //  Constants  // 
 /////////////////
@@ -306,7 +314,7 @@ function setState(newState) {
 	if(newState === TapApp.playback_state) {
 		var d = new Date();
 		console.log("Switched state to playback state at time " + d.getTime() + ", starting playback");
-		startPlayback();
+		//startPlayback();
 	// stop playback
 	} 
 	for(var i = 0; i < TapApp.stateButtonArray.length; i++) {
@@ -758,6 +766,53 @@ var indicate_state = function(state, ctx) {
 };
 
 
+function startPlaybackRound()
+{
+
+}
+function playNextNote()
+{
+	var roundResult = TapApp.roundResult[TapApp.playbackIndex];
+	var note = roundResult.notes[TapApp.playbackNoteIndex];
+	playRegion(TapApp.regionSet.regionArray[note.region]);
+	++TapApp.playbackNoteIndex;
+
+	var waitTime = 1000;
+	if (TapApp.playbackNoteIndex === roundResult.notes.length)
+	{
+		++TapApp.playbackIndex;
+		if (TapApp.playbackIndex === TapApp.roundResult.length)
+		{
+			setState(TapApp.freeplay_state);
+			startGame();
+		}
+		else
+		{
+			setTimeout(function() {
+				runGameplayPlayback();
+			}, waitTime);
+		}
+	}
+	else
+	{
+		var nextNote = roundResult.notes[TapApp.playbackNoteIndex];
+		waitTime = nextNote.time - note.time;
+		setTimeout(function() {
+			playNextNote();
+		}, waitTime);		
+	}
+}
+
+function runGameplayPlayback()
+{
+	var d = new Date();
+
+	TapApp.playbackStartTime = d.getTime();
+	TapApp.playbackNoteIndex = 0;
+	
+	playNextNote();
+}
+
 function incrementRound()
 {
 	if (TapApp.currentRoundResult !== null)
@@ -773,7 +828,13 @@ function incrementRound()
 		console.log("End of round!!");				
 		if (TapApp.roundNumber === rounds)
 		{
-			votingModal();
+
+			console.log("Game is over here but we're going to just keep going for now");		
+
+			//HACK HACK HACK
+			setState(TapApp.playback_state);
+			runGameplayPlayback();
+
 		}		
 	}	
 }
@@ -792,12 +853,8 @@ function nextRound()
 }
 
 //todo: give this a better home
-function playRegion(region)
+function playRegionGameplayUpdate(region)
 {
-	if(TapApp.state === TapApp.recording_state)
-		region.record();
-
-
     if (TapApp.round !== undefined)
     {
     	if (TapApp.round.startTime === undefined)
@@ -820,8 +877,18 @@ function playRegion(region)
 	    	note.time = d.getTime() - TapApp.round.startTime;
 	    	TapApp.currentRoundResult.notes.push(note);
 	    }    	
-    }
+    }	
+}
 
+function playRegion(region)
+{
+	if(TapApp.state === TapApp.recording_state)
+		region.record();
+
+	if (TapApp.state === TapApp.freeplay_state)
+	{
+		playRegionGameplayUpdate(region);
+	}
 
 	region.play();	
 }
@@ -987,14 +1054,35 @@ function startRound() {
 
 function startGame()
 {
+	TapApp.roundNumber = 0;
+	TapApp.currentPlayer = 0;
 	nextRound();
 }
 
 
 function votingModal() {
 	debugger
-	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content">'
-	var rounds = TapApp.roundResult
+	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
+	for(var i = 0; i < rounds; i++){
+		modalString += '<li>
+			<h3>ROUND ' + i + '</h3>
+				<ul>
+					<li>
+						<p>' + players[0] + ': </p>
+						<button class="playFinal" id="player0round' + i + '">play</button>
+					</li>
+					<li>
+						<p>' + players[1] + ': </p>
+						<button class="playFinal" id="player1round' + i + '">play</button>
+					</li>
+				</ul>
+				<radiogroup>
+					<radio id="votePlayer0round' + i + '" label="' + players[0] + '"/>
+					<radio id="votePlayer1round' + i + '" label="' + players[1] + '"/>
+				</radiogroup>
+				</li>'
+	}
+	modalString += '</ul><button id="submitVotes">Submit</button></div></div></div>'
 
 }
 ////////////
