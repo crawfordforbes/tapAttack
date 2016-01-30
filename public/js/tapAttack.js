@@ -766,10 +766,8 @@ var indicate_state = function(state, ctx) {
 };
 
 
-function startPlaybackRound()
-{
 
-}
+//returns false if done playing....
 function playNextNote()
 {
 	var roundResult = TapApp.roundResult[TapApp.playbackIndex];
@@ -780,18 +778,9 @@ function playNextNote()
 	var waitTime = 1000;
 	if (TapApp.playbackNoteIndex === roundResult.notes.length)
 	{
-		++TapApp.playbackIndex;
-		if (TapApp.playbackIndex === TapApp.roundResult.length)
-		{
-			setState(TapApp.freeplay_state);
-			startGame();
-		}
-		else
-		{
-			setTimeout(function() {
-				runGameplayPlayback();
-			}, waitTime);
-		}
+		//TODO: FILL ME IN HERE
+		//notify UI, this round is done?
+		return false;
 	}
 	else
 	{
@@ -800,17 +789,32 @@ function playNextNote()
 		setTimeout(function() {
 			playNextNote();
 		}, waitTime);		
+		return true;
+	}
+}
+
+function playbackRound(round, player)
+{
+	var d = new Date();
+
+	TapApp.playbackStartTime = d.getTime();
+	TapApp.playbackNoteIndex = 0;	
+
+	for (var i in TapApp.roundResult)
+	{
+		var roundResult = TapApp.roundResult[i];
+		if (roundResult.player === player && roundResult.round === round)
+		{
+			TapApp.playbackIndex = i;
+			playNextNote();
+		}
+		//else error?
 	}
 }
 
 function runGameplayPlayback()
 {
-	var d = new Date();
-
-	TapApp.playbackStartTime = d.getTime();
-	TapApp.playbackNoteIndex = 0;
-	
-	playNextNote();
+	playbackRound(0,1);
 }
 
 function incrementRound()
