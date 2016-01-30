@@ -107,6 +107,19 @@ TapApp.regionNodeArray = [];
 TapApp.roundNumber = 0;
 TapApp.currentPlayer = 0;
 TapApp.round = null;
+TapApp.roundResult = [];
+TapApp.currentRoundResult = null;
+
+var noteProto = {
+   region : undefined,
+   time : undefined
+};
+
+var roundResultProto = {
+   player : undefined,
+   round : undefined,
+   notes : []
+}
 
 var roundProto = {
    startTime : undefined
@@ -744,8 +757,13 @@ var indicate_state = function(state, ctx) {
 };
 
 
-function nextRound()
+function incrementRound()
 {
+	if (TapApp.currentRoundResult !== null)
+	{
+		TapApp.roundResult.push(TapApp.currentRoundResult);
+	}
+
 	++TapApp.currentPlayer;
 	if (TapApp.currentPlayer == TapApp.playerCount)
 	{
@@ -756,7 +774,16 @@ function nextRound()
 		{
 			console.log("Game is over here but we're going to just keep going for now");		
 		}		
-	}
+	}	
+}
+
+function nextRound()
+{
+	TapApp.currentRoundResult = Object.create(roundProto);
+
+	TapApp.currentRoundResult.player = TapApp.currentPlayer;
+	TapApp.currentRoundResult.round = TapApp.roundNumber;
+	TapApp.currentRoundResult.notes = [];
 
 	console.log(players[TapApp.currentPlayer] + "'s turn!");		
 
@@ -778,10 +805,22 @@ function playRegion(region)
 			TapApp.round.startTime  = d.getTime();	
 			setTimeout(
 				function() {
+					incrementRound();
 					nextRound();
 				}, getPlayMilliseconds());
     	}
+
+
+	    if (TapApp.currentRoundResult)
+	    {
+	    	var note = Object.create(noteProto);
+	    	note.region = region.id;
+	    	var d = new Date();
+	    	note.time = d.getTime() - TapApp.round.startTime;
+	    	TapApp.currentRoundResult.notes.push(note);
+	    }    	
     }
+
 
 	region.play();	
 }
@@ -943,6 +982,11 @@ function startRound() {
 	TapApp.round = Object.create(roundProto);
 }
 
+function startGame()
+{
+	nextRound();
+}
+
 
 ////////////
 //  main  //
@@ -953,4 +997,4 @@ createDefaultPads();
 setState(TapApp.freeplay_state)
 resize();
 determineDateDelay();
-startRound();
+startGame();
