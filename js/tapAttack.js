@@ -53,7 +53,7 @@ TapApp.regionNodeArray = [];
 
 TapApp.button_delay = 100;
 
-TapApp.threshold = 100;
+TapApp.threshold = 70;  //  larger than the radius to be nice, we don't want to accidentally make a new one or miss a tap
 TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 
 TapApp.r1 = 50;	// radius used to designate "center" of region
