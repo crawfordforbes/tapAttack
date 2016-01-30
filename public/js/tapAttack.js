@@ -33,6 +33,7 @@ startButton.click(function(){
 var metronomeButton = $("#metronome");
 var metronomeToggle = false;
 var metronome;
+var snare = new Wad(Wad.presets.snare);
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
 	var secondsPerBeat = 1 / beatsPerSecond;
@@ -43,7 +44,7 @@ metronomeButton.click(function(){
 	if (metronomeToggle === false){	
 		metronome = setInterval(
 			function(){
-				TapApp.regionSet.regionArray[3].play();
+				snare.play();
 			}, getMetronomeMilliseconds()
 		)
 		metronomeButton.text("stop metronome")
