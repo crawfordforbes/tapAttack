@@ -6,6 +6,30 @@
 
 // Debugging 
 
+
+/////////////////
+//  Metronome  //
+/////////////////
+
+//set user options, start the game
+var bpm = parseInt($("#bpm").val());
+var measures = parseInt($("#numOfMeasures").val());
+var rounds = parseInt($("#numOfRounds").val());
+
+var startButton = $("#startGame")
+startButton.click(function(){
+	bpm = parseInt($("#bpm").val());
+	measures = parseInt($("#numOfMeasures").val());
+	rounds = parseInt($("#numOfRounds").val());
+	var metronome = setInterval(
+			function(){
+				TapApp.regionSet.regionArray[4].play();
+			}, 200
+		)
+});
+
+
+
 function doNothing() {
 }
 
@@ -473,17 +497,7 @@ function createDefaultPads() {
 	 TapApp.regionSet.addTypedRegion(900,500,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
 }
 
-/////////////////
-//  Metronome  //
-/////////////////
-var bpm = $("#bpm").val()
-console.log(bpm)
-var startButton = $("#startGame")
-startButton.on('click', function(){
-	var metronome = window.setInterval(function(){
-	TapApp.regionSet.regionArray[5].play();
-}, 200)
-})
+
 
 
 
