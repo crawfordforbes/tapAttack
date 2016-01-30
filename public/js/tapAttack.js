@@ -471,6 +471,20 @@ function createDefaultPads() {
 }
 
 /////////////////
+//  Metronome  //
+/////////////////
+var bpm = $("#bpm").val()
+console.log(bpm)
+var startButton = $("#startGame")
+startButton.on('click', function(){
+	var metronome = window.setInterval(function(){
+	TapApp.regionSet.regionArray[5].play();
+}, 200)
+})
+
+
+
+/////////////////
 //  Recording  //
 /////////////////
 
