@@ -31,9 +31,9 @@
     <div class="modal-content">
 				<div id="menu">
 					<label for="player1">Player 1 name:</label>
-					<input type="text" name="player1" id="player1" />
+					<input type="text" name="player1" id="player1" value="Reverend Run"/>
 					<label for="player2">Player 2 name:</label>
-					<input type="text" name="player2" id="player2" />
+					<input type="text" name="player2" id="player2" value="DJ Tanner"/>
 					<label for="numOfRounds">How many rounds?</label>
 					<select id="numOfRounds">
 						<option>2</option>
@@ -64,7 +64,8 @@
 </div><!-- /.modal -->
 <div class="container">
 <div class="row">
-	<button id="metronome">start metronome</button>
+	<button class="col-md-2 col-offset-md-2"id="metronome">start metronome</button>
+	<p class="col-md-3">Current player is <span class="currentPlayer"></span></p>
 </div>
 </div>
 

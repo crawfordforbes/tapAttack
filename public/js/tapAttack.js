@@ -942,6 +942,8 @@ function handleXYOff(x, y) {
 
 function startRound() {
 	TapApp.round = Object.create(roundProto);
+	debugger
+	$(".currentPlayer").text(players[TapApp.currentPlayer])
 }
 
 
@@ -954,4 +956,4 @@ createDefaultPads();
 setState(TapApp.freeplay_state)
 resize();
 determineDateDelay();
-startRound();
+//startRound();
