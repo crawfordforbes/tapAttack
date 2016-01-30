@@ -370,18 +370,15 @@ var regionSetProto = {
        return null;
 	},
 
-	addRegion : function(x,y){
+
+	addTypedRegion : function(x,y, color, sampleName){
+
 		var newRegion = Object.create(regionProto);
 		newRegion.x = x;
 		newRegion.y = y;
 		ctx = document.getElementById("surface");
-		console.log("At height " + (1-(y/surface.height)) + " and testing that this value > ");
-		var i;
-		for(i = 0; i < TapApp.learningStripData.length && (1-(y/surface.height) > TapApp.learningStripData[i][0]); i++)
-			console.log("learningStripData[" + i + "][0] = " + TapApp.learningStripData[i][0]);	
-		console.log("Need the " + i + "th learning strip");
-		newRegion.color = TapApp.learningStripData[i][1];
-		newRegion.sampleName = TapApp.learningStripData[i][2];
+		newRegion.color = color;
+		newRegion.sampleName = sampleName ;
 		newRegion.id = this.regionArray.length;
 		console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
 			+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
@@ -391,12 +388,20 @@ var regionSetProto = {
 		return newRegion;
 	},
 
+	addRegion : function(x,y){
+		console.log("At height " + (1-(y/surface.height)) + " and testing that this value > ");
+		var i;
+		for(i = 0; i < TapApp.learningStripData.length && (1-(y/surface.height) > TapApp.learningStripData[i][0]); i++)
+			console.log("learningStripData[" + i + "][0] = " + TapApp.learningStripData[i][0]);	
+		console.log("Need the " + i + "th learning strip");
+
+		return this.addTypedRegion(x, y, TapApp.learningStripData[i][1], TapApp.learningStripData[i][2]);
+	},
+
 	loadSamples: function(n) {
 		for (var region in this.regionArray) {
-			this.region.samples = [];
-			for(var i = 0; i < n; i++) {
-				this.region.loadSamples(n);
-			}
+			this.regionArray[region].samples = [];
+			this.regionArray[region].loadSamples(n);
 		}
 	}
 }
@@ -435,12 +440,12 @@ function ensureRegionSet(){
 }
 
 
-function createDefaultButtons() {
+function createDefaultPads() {
 	 ensureRegionSet();
-	 TapApp.regionSet.addRegion(200,500);
-	 TapApp.regionSet.addRegion(300,500);
-	 TapApp.regionSet.addRegion(800,500);
-	 TapApp.regionSet.addRegion(900,500);
+	 TapApp.regionSet.addTypedRegion(200,500,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
+	 TapApp.regionSet.addTypedRegion(300,500,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
+	 TapApp.regionSet.addTypedRegion(800,500,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
+	 TapApp.regionSet.addTypedRegion(900,500,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
 }
 
 /////////////////
@@ -764,7 +769,8 @@ function handleXYOff(x, y) {
 //  main  //
 ////////////
 // initializeRegionTree(100, 100);
-createDefaultButtons();
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
+createDefaultPads();
+setState(TapApp.freeplay_state)
 resize();
