@@ -72,7 +72,7 @@ TapApp.learningStripData = [
 		[.3, "#F00", "kick1", 0], 
 		[.6, "#F80", "snare", 0],
 		[.8, "#0D0", "open_hh", 0], 
-		[ 1, "#00F", "rimshot", 0]
+		[ 1, "#00F", "hi_conga", 0]
 ];
 
 TapApp.patchHash = {
@@ -236,6 +236,7 @@ function initializeLearningStrips(numSamples) {
 	for (strip in TapApp.learningStripData) {
 		TapApp.learningStripSamples.push([]);
 		for(var i = 0; i < numSamples; i++) {
+			console.log(TapApp.audioDirectory + TapApp.kit + "-" + TapApp.learningStripData[strip][2] + TapApp.sampleSuffix);			
 			TapApp.learningStripSamples[strip].push(
 				new Audio( TapApp.audioDirectory + TapApp.kit + "-" + TapApp.learningStripData[strip][2] + TapApp.sampleSuffix)
 			);
