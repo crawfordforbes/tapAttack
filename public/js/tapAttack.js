@@ -7,26 +7,49 @@
 // Debugging 
 
 
-/////////////////
-//  Metronome  //
-/////////////////
-
 //set user options, start the game
 var bpm = parseInt($("#bpm").val());
 var measures = parseInt($("#numOfMeasures").val());
 var rounds = parseInt($("#numOfRounds").val());
 
-var startButton = $("#startGame")
+var startButton = $("#startGame");
+
 startButton.click(function(){
 	bpm = parseInt($("#bpm").val());
 	measures = parseInt($("#numOfMeasures").val());
 	rounds = parseInt($("#numOfRounds").val());
-	var metronome = setInterval(
-			function(){
-				TapApp.regionSet.regionArray[4].play();
-			}, 200
-		)
+	
 });
+
+/////////////////
+//  Metronome  //
+/////////////////
+
+
+var metronomeButton = $("#metronome");
+var metronomeToggle = false;
+var metronome;
+function getMetronomeMilliseconds() {
+	var beatsPerSecond = bpm / 60;
+	var secondsPerBeat = 1 / beatsPerSecond;
+    return secondsPerBeat * 1000.0;
+}
+
+metronomeButton.click(function(){
+	if (metronomeToggle === false){	
+		metronome = setInterval(
+			function(){
+				TapApp.regionSet.regionArray[3].play();
+			}, getMetronomeMilliseconds()
+		)
+		metronomeButton.text("stop metronome")
+		metronomeToggle = true;
+	} else {
+		clearInterval(metronome);
+		metronomeButton.text("start metronome");
+		metronomeToggle = false;
+	}
+})
 
 
 
