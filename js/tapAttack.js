@@ -595,12 +595,26 @@ var indicate_state = function(state, ctx) {
 	user input
 **********************/
 // TODO: handle tracker-style keyboard use
+
+//set default keys
+var keyLookup = [];
+keyLookup[68] = 0;
+keyLookup[70] = 1;
+keyLookup[74] = 2;
+keyLookup[75] = 3;
+
 var handleKey = function(event) {
 	if (event.repeat !== undefined)
 	{
 		if (event.repeat) return;
 	}
-	console.log("TAP!");
+	console.log("Pressed key - " + event.keyCode);
+
+
+    if (keyLookup[event.keyCode] !== undefined)
+    {
+       console.log("Pressed key in array - " + keyLookup[event.keyCode]);
+    }
 }
 
 var handleTouchStart = function(event) {
