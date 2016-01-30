@@ -428,6 +428,20 @@ function dist(x1, y1, x2, y2) {
 	return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 }
 
+function ensureRegionSet(){
+	if (TapApp.regionSet === undefined) {
+		TapApp.regionSet = Object.create(regionSetProto);
+	}
+}
+
+
+function createDefaultButtons() {
+	 ensureRegionSet();
+	 TapApp.regionSet.addRegion(200,500);
+	 TapApp.regionSet.addRegion(300,500);
+	 TapApp.regionSet.addRegion(800,500);
+	 TapApp.regionSet.addRegion(900,500);
+}
 
 /////////////////
 //  Recording  //
@@ -613,7 +627,12 @@ var handleKey = function(event) {
 
     if (keyLookup[event.keyCode] !== undefined)
     {
-       console.log("Pressed key in array - " + keyLookup[event.keyCode]);
+    	var regionIndex = keyLookup[event.keyCode];
+    	console.log("Pressed key in array - " + regionIndex);
+
+    	//regions should be set up by now.  sorta hacked.
+    	//TODO: does this depend on gamestate?
+    	TapApp.regionSet.regionArray[regionIndex].play();
     }
 }
 
@@ -699,11 +718,7 @@ function handleXYOn(x, y) {
 		}
 	}
 
-	if(TapApp.regionSet === undefined) {
-		//initializeRegionTree(x, y);
-		TapApp.regionSet = Object.create(regionSetProto);
-		console.log("Had to initialize tree after user input");
-	}
+	ensureRegionSet();
 
 	var region = TapApp.regionSet.clicked(x, y);
 
@@ -749,6 +764,7 @@ function handleXYOff(x, y) {
 //  main  //
 ////////////
 // initializeRegionTree(100, 100);
+createDefaultButtons();
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 resize();
