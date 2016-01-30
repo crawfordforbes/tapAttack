@@ -54,7 +54,8 @@ TapApp.regionNodeArray = [];
 
 TapApp.button_delay = 100;
 
-TapApp.threshold = 100;
+TapApp.threshold = 70;  //  larger than the radius to be nice, we don't want to accidentally make a new one or miss a tap
+TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 
 TapApp.r1 = 50;	// radius used to designate "center" of region
 TapApp.r2 = 70;
@@ -72,7 +73,7 @@ TapApp.learningStripData = [
 		[.3, "#F00", "kick1", 0], 
 		[.6, "#F80", "snare", 0],
 		[.8, "#0D0", "open_hh", 0], 
-		[ 1, "#00F", "rimshot", 0]
+		[ 1, "#00F", "hi_conga", 0]
 ];
 
 TapApp.patchHash = {
@@ -165,8 +166,7 @@ TapApp.learningButton = Object.create(buttonProto);
 TapApp.learningButton.init(10, 10, 40, 40, "#EE0", "#FF0");
 TapApp.learningButton.onpress = function() {
 	setState(TapApp.learning_state);
-	TapApp.regionTree = undefined;
-	TapApp.regionArray = [];
+	TapApp.regionSet = undefined;
 	refresh();
 };
 
@@ -257,6 +257,7 @@ function initializeLearningStrips(numSamples) {
 	for (strip in TapApp.learningStripData) {
 		TapApp.learningStripSamples.push([]);
 		for(var i = 0; i < numSamples; i++) {
+			console.log(TapApp.audioDirectory + TapApp.kit + "-" + TapApp.learningStripData[strip][2] + TapApp.sampleSuffix);			
 			TapApp.learningStripSamples[strip].push(
 				new Audio( TapApp.audioDirectory + TapApp.kit + "-" + TapApp.learningStripData[strip][2] + TapApp.sampleSuffix)
 			);
@@ -280,8 +281,6 @@ function getStrip(y) {
 ///////////////
 //  Regions  //
 ///////////////
-TapApp.regionArray = [];
-
 var regionProto = {
 	id: 0,
 	x: -1,
@@ -325,7 +324,7 @@ var regionProto = {
 		var i = this.id;
 		setTimeout( 
 			function() { 
-				TapApp.regionArray[i].deactivate();
+				TapApp.regionSet.deactivateRegion(i);
 				refresh();
 			}, 
 			TapApp.button_delay);
@@ -333,6 +332,16 @@ var regionProto = {
 
 	record: function() {
 		recordHit(this.id);
+	},
+
+    distanceSquared : function(x, y) {
+	    var deltaX = x - this.x;
+        var deltaY = y - this.y;
+        return deltaX * deltaX + deltaY * deltaY;
+    },
+
+	clicked: function(x, y) {
+       return this.distanceSquared(x,y) < TapApp.thresholdSquared;
 	},
 
 	loadSamples: function(n) {
@@ -358,140 +367,76 @@ var regionProto = {
 		refresh(); 
 	}
 }
+ 
+var regionSetProto = {
+	regionArray : [],
+     
+     
+     deactivateRegion : function(id) {
+ 	 	this.regionArray[id].deactivate();
+     },
 
-var regionTreeNodeProto = {
-	id: 0,
-	discriminant: null,
-	left:  null,
-	right: null,
-	region: null,
-	barrier: null,
-
-	scale: function(scaleX, scaleY) {
-		if(this.region === null) {
-			this.left.scale(scaleX, scaleY);
-			this.right.scale(scaleX, scaleY);
-		} else {
-			this.region.scale(scaleX, scaleY);
-		}
-	}, 
-
-	display: function(ctx) {
-		if(this.region === null) {
-			this.left.display(ctx);
-			this.right.display(ctx);
-
-			/* if(this.barrier !== null) {
-				ctx.fillStyle = "#000";
-				ctx.beginPath();
-				ctx.arc(this.barrier[0], this.barrier[1], 2, 0, 2*Math.PI);
-				ctx.fill();
-			} */
-
-		} else
-			this.region.display(ctx);
-	},
-
-	// region array, so we can assign new patches
-	// darker shades for new region created
-
-	splitRegion: function(x, y) {
-		if(this.region !== null) {
-			this.left = Object.create(this);
-			this.right = Object.create(this);
-			this.discriminant = createDiscriminant(this.region.x, this.region.y, x, y);
-			this.barrier = [ (this.region.x + x) / 2, (this.region.y + y) / 2 ];
-
-			// In theory, I think this should either always be true or always be false
-			var newRegion = Object.create(regionProto);
-			newRegion.x = x;
-			newRegion.y = y;
-			ctx = document.getElementById("surface");
-			// console.log("At height " + (1-(y/surface.height)) + " and testing that this value > ");
-			var i;
-			for(i = 0; i < TapApp.learningStripData.length && (1-(y/surface.height) > TapApp.learningStripData[i][0]); i++)
-			;
-		//	console.log("Need the " + i + "th learning strip");
-			newRegion.color = TapApp.learningStripData[i][1];
-			newRegion.sampleName = TapApp.learningStripData[i][2];
-			newRegion.id = TapApp.regionArray.length;
-			//console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
-			//	+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
-
-			TapApp.regionArray.push(newRegion);
-
-			if(this.discriminant(x,y)) {
-				this.left.region	= newRegion;
-				this.right.region = this.region;
-				// console.log("<");
-			} else {
-				this.right.region = newRegion;
-				this.left.region = this.region;
-				// console.log(">");
-			}
-			this.region = null;
-			return newRegion;
-		}	else if (this.discriminant(x,y)) {
-			return this.left.splitRegion(x,y);	
-		} else {
-			return this.right.splitRegion(x,y);
+	display : function(ctx) {
+		for (var i in this.regionArray) {
+			this.regionArray[i].display(ctx);
 		}
 	},
+     
 
-	getRegion: function(x, y) {
-		if(this.region !== null)
-			return this.region;
-		if(this.discriminant(x,y))
-			return this.left.getRegion(x,y);
-		else
-			return this.right.getRegion(x,y);
+	clicked : function(x,y) {
+	   for (var i in this.regionArray) {
+	      if (this.regionArray[i].clicked(x,y)) {
+	         return this.regionArray[i];
+	      }
+	   }
+       return null;
+	},
+
+
+	addTypedRegion : function(x,y, color, sampleName){
+
+		var newRegion = Object.create(regionProto);
+		newRegion.x = x;
+		newRegion.y = y;
+		ctx = document.getElementById("surface");
+		newRegion.color = color;
+		newRegion.sampleName = sampleName ;
+		newRegion.id = this.regionArray.length;
+		console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
+			+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
+
+		this.regionArray.push(newRegion);		
+
+		return newRegion;
+	},
+
+	addRegion : function(x,y){
+		console.log("At height " + (1-(y/surface.height)) + " and testing that this value > ");
+		var i;
+		for(i = 0; i < TapApp.learningStripData.length && (1-(y/surface.height) > TapApp.learningStripData[i][0]); i++)
+			console.log("learningStripData[" + i + "][0] = " + TapApp.learningStripData[i][0]);	
+		console.log("Need the " + i + "th learning strip");
+
+		return this.addTypedRegion(x, y, TapApp.learningStripData[i][1], TapApp.learningStripData[i][2]);
 	},
 
 	loadSamples: function(n) {
-		if(this.region !== null) {
-			this.region.samples = [];
-			for(var i = 0; i < n; i++) {
-				this.region.loadSamples(n);
-			}
-		} else {
-			this.left.loadSamples(n);
-			this.right.loadSamples(n);
-		}	
-	},
-
-	
-
-}
-
-function initializeRegionTree(x, y) {
-	var root = Object.create(regionTreeNodeProto);
-	root.region = Object.create(regionProto);
-	root.region.x = x;
-	root.region.y = y;
-	root.region.color = arbitraryColor();
-	TapApp.regionArray = [];
-	TapApp.regionArray.push(root.region);
-	TapApp.regionTree =  root;
-}
-
-function createDiscriminant( x1,  y1,  x2,  y2) {
-	var midX = (x1+x2)/2;
-	var midY = (y1+y2)/2;
-	var m = (y1-y2)/(x1-x2);
-	var discriminant = function(x, y) {
-		// console.log("Used discriminant created from pairs (" + x1 + ", " + y1 + ") and (" + x2 + ", " + y2 + ")");
-		return m*(y-midY) + (x-midX) > 0;
+		for (var region in this.regionArray) {
+			this.regionArray[region].samples = [];
+			this.regionArray[region].loadSamples(n);
+		}
 	}
-	return discriminant;
 }
+
+
 
 TapApp.loadedSamples = 0;
 // Does this work?
 function loadAllSamples() {
 	TapApp.loadedSamples = 0;
-	TapApp.regionTree.loadSamples(TapApp.samplesPerRegion);
+	TapApp.regionSet.loadSamples(TapApp.samplesPerRegion);
 	TapApp.accumulatedDelay = 0;
-	waitForAllSamples(TapApp.sampleLoadDelay, TapApp.regionArray.length);
+	waitForAllSamples(TapApp.sampleLoadDelay, TapApp.regionSet.regionArray.length);
 }
 
 function waitForAllSamples(delay, n) {
@@ -510,6 +455,20 @@ function dist(x1, y1, x2, y2) {
 	return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 }
 
+function ensureRegionSet(){
+	if (TapApp.regionSet === undefined) {
+		TapApp.regionSet = Object.create(regionSetProto);
+	}
+}
+
+
+function createDefaultPads() {
+	 ensureRegionSet();
+	 TapApp.regionSet.addTypedRegion(200,500,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
+	 TapApp.regionSet.addTypedRegion(300,500,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
+	 TapApp.regionSet.addTypedRegion(800,500,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
+	 TapApp.regionSet.addTypedRegion(900,500,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
+}
 
 /////////////////
 //  Recording  //
@@ -608,8 +567,9 @@ var resize = function() {
 	var scaleX = surface.width / oldWidth;
 	var scaleY = surface.height / oldHeight;
 
-	if(TapApp.regionTree !== undefined)
-		TapApp.regionTree.scale(scaleX, scaleY);
+    //todo: make it work!
+	//if(TapApp.regionSet !== undefined)
+	//  TapApp.regionTree.scale(scaleX, scaleY);
 
 	// handle changing radius size
 
@@ -626,8 +586,9 @@ var refresh = function() {
 	ctx.fillStyle = "#FFF";
 	ctx.fillRect(0, 0, surface.width, surface.height);
 
-	if(TapApp.regionTree !== undefined)
-		TapApp.regionTree.display(ctx);
+
+	if(TapApp.regionSet !== undefined)
+		TapApp.regionSet.display(ctx);
 
 
 //	indicate(TapApp.app_mode, ctx);  NEXT THING TO WORK ON is transitions between states
@@ -688,6 +649,7 @@ var indicate_state = function(state, ctx) {
 			ctx.font = "24px Arial";
 			ctx.textAlign = "center";
 			ctx.fillText("Loading samples", width/2, height/2);
+			break;
 	
 		default:
 			console.log("Unknown state " + state + " was indicated");
@@ -698,7 +660,31 @@ var indicate_state = function(state, ctx) {
 	user input
 **********************/
 // TODO: handle tracker-style keyboard use
+
+//set default keys
+var keyLookup = [];
+keyLookup[68] = 0;
+keyLookup[70] = 1;
+keyLookup[74] = 2;
+keyLookup[75] = 3;
+
 var handleKey = function(event) {
+	if (event.repeat !== undefined)
+	{
+		if (event.repeat) return;
+	}
+	console.log("Pressed key - " + event.keyCode);
+
+
+    if (keyLookup[event.keyCode] !== undefined)
+    {
+    	var regionIndex = keyLookup[event.keyCode];
+    	console.log("Pressed key in array - " + regionIndex);
+
+    	//regions should be set up by now.  sorta hacked.
+    	//TODO: does this depend on gamestate?
+    	TapApp.regionSet.regionArray[regionIndex].play();
+    }
 }
 
 var handleTouchStart = function(event) {
@@ -785,24 +771,20 @@ function handleXYOn(x, y) {
 		}
 	}
 
-	if(TapApp.regionTree === undefined) {
-		initializeRegionTree(x, y);
-		console.log("Had to initialize tree after user input");
-	}
+	ensureRegionSet();
 
-	var region = TapApp.regionTree.getRegion(x, y);
+	var region = TapApp.regionSet.clicked(x, y);
 
-	if(dist(x, y, region.x, region.y) < TapApp.threshold) {
+	if(region !== null) {
 		var d = new Date();
 		var t = d.getTime();
 		fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
 		if(TapApp.state === TapApp.recording_state)
 			region.record();
+			region.play();
 
-		region.play();
-
-	} else if (TapApp.state === TapApp.learning_state && dist(x, y, region.x, region.y) > TapApp.threshold) {
-		region = TapApp.regionTree.splitRegion(x, y);
+	} else if (TapApp.state === TapApp.learning_state) {
+		region = TapApp.regionSet.addRegion(x, y);
 		setupNewPad(region)
 		region.play();
 	}
@@ -837,5 +819,7 @@ function handleXYOff(x, y) {
 // initializeRegionTree(100, 100);
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
+createDefaultPads();
+setState(TapApp.freeplay_state)
 resize();
 determineDateDelay();
