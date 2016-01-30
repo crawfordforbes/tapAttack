@@ -24,6 +24,12 @@
 			document.getElementById("console").innerHTML="Hint: " + hints[0];
 		</script>
 
-		<script src="js/tapAttack.js"></script>
+		<script type='application/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js'></script>
+		<script type="application/javascript">
+	window.addEventListener('load', function () {
+		FastClick.attach(document.body);
+	}, false);
+</script> 
+<script src="js/tapAttack.js"></script>
 	</body>
 </html>
