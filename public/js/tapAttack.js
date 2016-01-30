@@ -11,6 +11,7 @@
 var bpm = parseInt($("#bpm").val());
 var measures = parseInt($("#numOfMeasures").val());
 var rounds = parseInt($("#numOfRounds").val());
+var players = [];
 
 var startButton = $("#startGame");
 
@@ -18,7 +19,10 @@ startButton.click(function(){
 	bpm = parseInt($("#bpm").val());
 	measures = parseInt($("#numOfMeasures").val());
 	rounds = parseInt($("#numOfRounds").val());
-	
+
+	players = [];
+	players.push($("#player1").val());
+	players.push($("#player2").val());	
 });
 
 /////////////////
@@ -96,9 +100,26 @@ TapApp.buttonArray = [];
 TapApp.stateButtonArray = [];
 TapApp.regionNodeArray = [];
 
+
+//////////////////////
+//  Gameplay State  //
+//////////////////////
+
+TapApp.roundNumber = 0;
+TapApp.currentPlayer = 0;
+TapApp.round = null;
+
+var roundProto = {
+   startTime : undefined
+   //todo: more data?
+   //this is in its own object, for easier reasoning about
+};
+
 /////////////////
 //  Constants  // 
 /////////////////
+
+TapApp.playerCount = 2; //TODO: more than two.
 
 TapApp.button_delay = 100;
 
@@ -531,9 +552,6 @@ function createDefaultPads() {
 
 
 function getPlayMilliseconds() {
-	var measures = $("#numOfMeasures").val();
-	var bpm = $("#bpm").val();
-
 	var beatsPerSecond = bpm / 60;
 	var secondsPerBeat = 1 / beatsPerSecond;
 
@@ -726,10 +744,53 @@ var indicate_state = function(state, ctx) {
 	}
 };
 
+
+function nextRound()
+{
+	++TapApp.currentPlayer;
+	if (TapApp.currentPlayer == TapApp.playerCount)
+	{
+		TapApp.currentPlayer = 0;	
+		++TapApp.roundNumber;
+		console.log("End of round!!");				
+		if (TapApp.roundNumber == rounds)
+		{
+			console.log("Game is over here but we're going to just keep going for now");		
+		}		
+	}
+
+	console.log(players[TapApp.currentPlayer] + "'s turn!");		
+
+	startRound();
+}
+
+//todo: give this a better home
+function playRegion(region)
+{
+	if(TapApp.state === TapApp.recording_state)
+		region.record();
+
+
+    if (TapApp.round !== undefined)
+    {
+    	if (TapApp.round.startTime === undefined)
+    	{
+    		var d = new Date();
+			TapApp.round.startTime  = d.getTime();	
+			setTimeout(
+				function() {
+					nextRound();
+				}, getPlayMilliseconds());
+    	}
+    }
+
+	region.play();	
+}
 /**********************
 	user input
 **********************/
 // TODO: handle tracker-style keyboard use
+
 
 //set default keys
 var keyLookup = [];
@@ -751,12 +812,7 @@ var handleKey = function(event) {
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
     	console.log("Pressed key in array - " + regionIndex);
-
-    	//regions should be set up by now.  sorta hacked.
-    	//TODO: does this depend on gamestate?
-		if(TapApp.state === TapApp.recording_state)
-			region.record();
-    	region.play();
+    	playRegion(region);
     }
 }
 
@@ -852,9 +908,7 @@ function handleXYOn(x, y) {
 		var d = new Date();
 		var t = d.getTime();
 		fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
-		if(TapApp.state === TapApp.recording_state)
-			region.record();
-			region.play();
+		playRegion(region);
 
 	} else if (TapApp.state === TapApp.learning_state) {
 		region = TapApp.regionSet.addRegion(x, y);
@@ -886,14 +940,18 @@ function handleXYOff(x, y) {
 }
 
 
+function startRound() {
+	TapApp.round = Object.create(roundProto);
+}
+
+
 ////////////
 //  main  //
 ////////////
-// initializeRegionTree(100, 100);
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
 setState(TapApp.freeplay_state)
 resize();
 determineDateDelay();
-
+startRound();
