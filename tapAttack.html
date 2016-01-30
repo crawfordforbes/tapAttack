@@ -1,0 +1,30 @@
+<!-- tapApp.html
+		 intuitive rhythm composition -->
+
+<html>
+	<head>
+		<title>Tap App | Three Right Angles</title>
+		<link rel=stylesheet href="css/stylesheet.css">
+		<meta charset="utf-8">
+	</head>
+
+	<body onkeydown="handleKey(event)"  
+				onmousedown="handleMouseDown(event)" 
+				ontouchstart="handleTouchStart(event)"	
+				ontouchmove="handleTouchMove(event)"	
+				ontouchend="handleTouchEnd(event)"	
+				onresize="resize()" 	
+				style="margin : 0px">
+
+		<canvas id="surface"> </canvas>
+	
+		<div id="console" style="height : 20px"> </div>
+
+		<script>
+			var hints = ["Tap anywhere (except this console)"];
+			document.getElementById("console").innerHTML="Hint: " + hints[0];
+		</script>
+
+		<script src="js/tapApp3.js"></script>
+	</body>
+</html>
