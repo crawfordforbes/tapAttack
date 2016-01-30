@@ -3,11 +3,12 @@
 
 
 // Next steps
-//   * assign one patch to each strip of the screen for play back during learning
-//   * when exiting learning mode, initialize N Audio objects for each pad
-//   * when entering recording mode, initialize 2-d array for each pad to hold its recordings 
 
 // Debugging 
+
+function doNothing() {
+}
+
 var useConsole = true;
 function fauxConsole(str) {																					
 	if(useConsole)
@@ -84,6 +85,8 @@ TapApp.patchHash = {
 	"tom": "tom1"
 };
 
+TapApp.playbackRate = 10;  // how long the callback waits before calling itself again 
+													 // to see if there's a new note to play
 
 ////////////// 
 //  Colors  //
@@ -190,18 +193,36 @@ TapApp.playButton = Object.create(buttonProto);
 TapApp.playButton.init(260, 10, 40, 40, "#0A0", "#3F3");
 TapApp.playButton.onpress = function() {
 	setState(TapApp.playback_state);
+	for(var s in TapApp.recording) {
+		console.log("At time " + TapApp.recording[s][0] + " play " + TapApp.recording[s][1]);
+	}
 };
 
 function setState(newState) {
 	console.log("Setting state from " + TapApp.state + " to " + newState);
+
+	// learning -> non-learning: load samples
 	if(newState !== TapApp.learning_state && TapApp.state === TapApp.learning_state) {
 		loadAllSamples();
+
+	// start recording
 	} else if(newState === TapApp.recording_state) {
 		startRecording();
+
+	// stop recording
 	} else if(TapApp.state === TapApp.recording_state) {
 		stopRecording();
+
+	// start playback
+	} else if(newState === TapApp.playback_state) {
+		var d = new Date();
+		console.log("Switched state to playback state at time " + d.getTime() + ", starting playback");
+		startPlayback();
+
+	// stop playback
 	} else if(TapApp.state === TapApp.playback_state) {
-		stopPlayback();
+		console.log("Switched out of playback state, stopping playback");
+		// stopPlayback(); // currently doesn't do anything anyway
 	}
 	for(var i = 0; i < TapApp.stateButtonArray.length; i++) {
 		if(i === newState) {
@@ -245,8 +266,7 @@ function initializeLearningStrips(numSamples) {
 }
 
 function playStripSample(i) {
-	console.log("Playing the " + TapApp.learningStripData[i][3] + "th copy (out of " + TapApp.learningStripSamples[i].length 
-		+ " of learning strip sample " + i);
+	// console.log("Playing the " + TapApp.learningStripData[i][3] + "th copy (out of " + TapApp.learningStripSamples[i].length + " of learning strip sample " + i);
 	TapApp.learningStripSamples[i][TapApp.learningStripData[i][3]].play();
 	TapApp.learningStripData[i][3] = (TapApp.learningStripData[i][3] + 1) % TapApp.learningStripSamples[i].length;
 }
@@ -254,7 +274,7 @@ function playStripSample(i) {
 function getStrip(y) {
 	for(i = 0; i < TapApp.learningStripData.length && (1-(y/surface.height) > TapApp.learningStripData[i][0]); i++)
 		;
-	console.log("Need the " + i + "th learning strip");
+	// console.log("Need the " + i + "th learning strip");
 	return i;
 }
 
@@ -289,14 +309,15 @@ var regionProto = {
 	},
 
 	play: function() {
-		console.log("Playing region " + this.id + " during state " + TapApp.state);
+		// console.log("Playing region " + this.id + " during state " + TapApp.state);
 		this.active = true;
 		refresh();
-		console.log("Need to play sample " + this.sampleCounter + " of " + this.samples.length);
+		// console.log("Need to play sample " + this.sampleCounter + " of " + this.samples.length);
 		if(TapApp.state === TapApp.learning_state) {
 			var stripNum = getStrip(this.y);
 			playStripSample(stripNum);
 		} else {
+			console.log("Playing copy " + this.sampleCounter);
 			this.samples[this.sampleCounter].play();
 			this.sampleCounter = (this.sampleCounter + 1) % this.numSamples;
 		}
@@ -460,16 +481,22 @@ function startRecording() {
 function recordHit(padNumber) {
 	var d = new Date();
 	var t = d.getTime();
-	if(TapApp.recording === []) {
+	if(TapApp.recording.length === 0) {
 		TapApp.recordingOffset = t;
 	}
 	console.log("Recorded pad " + padNumber + " at time " + t);
 	TapApp.recording.push([t, padNumber]);
+	var n = TapApp.recording.length-1;
+	console.log("To be clear, we just recorded pad " + TapApp.recording[n][1] 
+						+ " at time " + TapApp.recording[n][0]);
+	for(var s in TapApp.recording) {
+		console.log("  " + TapApp.recording[s][0] + ", " + TapApp.recording[s][1]);
+	}
 }
 
 function addRecordingOffset(offset) {
 	for(hit in TapApp.recording) {
-		TapApp.recording[hit][0] -= offset;
+		TapApp.recording[hit][0] += offset;
 	}
 }
 
@@ -477,29 +504,47 @@ function stopRecording() {
 	addRecordingOffset(-TapApp.recordingOffset)
 }
 
+function returnPlaybackCallback(time, padNumber) {
+	var region = TapApp.regionArray[padNumber]
+	return function() { 
+		console.log("It has been " + time + " seconds, playing sample " + padNumber);
+		region.play();
+	}
+}
+
 function startPlayback() {
-	var d = new Date();
-	TapApp.playbackPosition = 0;
-	TapApp.playbackOffset = d.getTime();
-	addRecordingOffset(TapApp.playbackOffset);
+	for(var i in TapApp.recording) {
+		var time = TapApp.recording[i][0];
+		var padNumber = TapApp.recording[i][1];
+		console.log("Setting timeout in " + time + "ms to play sample " + padNumber);
+		setTimeout( returnCallback(time, padNumber), time);
+	}
+	var last = TapApp.recording.length-1;
+
+	// 100ms after the last sample is played, switch to freeplay mode
+	setTimeout(function() { setState(TapApp.freeplay_state) }, TapApp.recording[last][0]+100);
 }
 
-function stopPlayback() {
-	addRecordingOffset(-TapApp.playbackOffset);
+function determineDateDelay() {
+	var d1 = new Date();
+	var d2 = new Date();
+	console.log("btw, new Date generation delay: " + (d2.getTime() - d1.getTime()));
 }
 
-function checkForHit(playbackWindowSize) {
+/*
+function toPlayOrNotToPlay() {
 	if(TapApp.playbackPosition >= TapApp.recording.length) {
-		TapApp.setState(TapApp.freeplay_state);
+		setState(TapApp.freeplay_state);
 		return;
 	}
 	var d = new Date();
-	if(d.getTime() > TapApp.recording[playbackPosition][0]) {
-		TapApp.regionSet.regionArray[TapApp.recording[playbackPosition][1]].play();
+	if(d.getTime() > TapApp.recording[TapApp.playbackPosition][0]) {
+		TapApp.regionArray[TapApp.recording[TapApp.playbackPosition][1]].play();
 		TapApp.playbackPosition += 1;
 	}
-	setTimeout(checkForHit(playbackWindowSize), playbackWindowSize);
+	setTimeout(toPlayOrNotToPlay(), TapApp.playbackRate);
 }
+*/
 
 /********************
  	resize / refresh
@@ -678,6 +723,8 @@ function touchToUserY(event, surface) {
 	return event.targetTouches[0].pageY - surfaceRect.top;
 }
 
+
+
 var handleMouseDown = function(event) {
 	var d = new Date();
 	TapApp.startTime = d.getTime();
@@ -775,3 +822,4 @@ setState(TapApp.learning_state);
 createDefaultPads();
 setState(TapApp.freeplay_state)
 resize();
+determineDateDelay();
