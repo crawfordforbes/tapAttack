@@ -11,6 +11,7 @@
 var bpm = parseInt($("#bpm").val());
 var measures = parseInt($("#numOfMeasures").val());
 var rounds = parseInt($("#numOfRounds").val());
+var players = [];
 
 var startButton = $("#startGame");
 
@@ -18,7 +19,10 @@ startButton.click(function(){
 	bpm = parseInt($("#bpm").val());
 	measures = parseInt($("#numOfMeasures").val());
 	rounds = parseInt($("#numOfRounds").val());
-	
+
+	players = [];
+	players.push($("#player1").val());
+	players.push($("#player2").val());	
 });
 
 /////////////////
@@ -754,7 +758,7 @@ function nextRound()
 		}		
 	}
 
-	console.log("Go go Player #" + (TapApp.currentPlayer+1) + "!");		
+	console.log(players[TapApp.currentPlayer] + "'s turn!");		
 
 	startRound();
 }
