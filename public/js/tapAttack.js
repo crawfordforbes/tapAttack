@@ -180,6 +180,7 @@ TapApp.recordButton = Object.create(buttonProto);
 TapApp.recordButton.init(160, 10, 40, 40, "#E00", "#F00")
 TapApp.recordButton.onpress = function() {
 	setState(TapApp.recording_state);
+	console.log("ms to play - " + getPlayMilliseconds());
 	startRecording();
 };
 
@@ -475,6 +476,21 @@ function createDefaultPads() {
 /////////////////
 //  Recording  //
 /////////////////
+
+
+function getPlayMilliseconds() {
+	var measures = $("#numOfMeasures").val();
+	var bpm = $("#bpm").val();
+
+	var beatsPerSecond = bpm / 60;
+	var secondsPerBeat = 1 / beatsPerSecond;
+
+	//time is 4/4
+
+	var beats = 4 * measures;
+
+    return beats * secondsPerBeat * 1000.0;
+}
 
 function startRecording() {
 	TapApp.recording = [];
@@ -828,3 +844,4 @@ createDefaultPads();
 setState(TapApp.freeplay_state)
 resize();
 determineDateDelay();
+
