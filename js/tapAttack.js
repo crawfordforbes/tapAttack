@@ -596,6 +596,11 @@ var indicate_state = function(state, ctx) {
 **********************/
 // TODO: handle tracker-style keyboard use
 var handleKey = function(event) {
+	if (event.repeat !== undefined)
+	{
+		if (event.repeat) return;
+	}
+	console.log("TAP!");
 }
 
 var handleTouchStart = function(event) {
@@ -633,8 +638,6 @@ function touchToUserY(event, surface) {
 	var surfaceRect = surface.getBoundingClientRect();
 	return event.targetTouches[0].pageY - surfaceRect.top;
 }
-
-
 
 var handleMouseDown = function(event) {
 	var d = new Date();
