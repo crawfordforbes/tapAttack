@@ -59,7 +59,8 @@ TapApp.r1 = 50;	// radius used to designate "center" of region
 TapApp.r2 = 70;
 
 
-TapApp.audioDirectory = "../mp3/";
+// TapApp.audioDirectory = "../mp3/";
+TapApp.audioDirectory = "mp3/";
 TapApp.patches = ["hightom", "hi_conga", "kick1", "kick2", "maracas", "open_hh", "rimshot", "snare", "tom1" ];
 TapApp.sampleSuffix = ".mp3";
 TapApp.samplesPerRegion = 12;
@@ -309,6 +310,10 @@ var regionProto = {
 			TapApp.button_delay);
 	},
 
+	record: function() {
+		recordHit(this.id);
+	},
+
 	loadSamples: function(n) {
 		this.numSamples = n;
 		this.sampleCounter = 0;
@@ -499,6 +504,7 @@ function recordHit(padNumber) {
 	if(TapApp.recording === []) {
 		TapApp.recordingOffset = t;
 	}
+	console.log("Recorded pad " + padNumber + " at time " + t);
 	TapApp.recording.push([t, padNumber]);
 }
 
@@ -745,7 +751,9 @@ function handleXYOn(x, y) {
 		var d = new Date();
 		var t = d.getTime();
 		fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
-		region.play();
+		if(TapApp.state === TapApp.recording_state)
+			region.record();
+			region.play();
 
 	} else if (TapApp.state === TapApp.learning_state && dist(x, y, region.x, region.y) > TapApp.threshold) {
 		region = TapApp.regionTree.splitRegion(x, y);
