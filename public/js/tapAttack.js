@@ -213,17 +213,19 @@ function setState(newState) {
 	} else if(TapApp.state === TapApp.recording_state) {
 		stopRecording();
 
-	// start playback
-	} else if(newState === TapApp.playback_state) {
-		var d = new Date();
-		console.log("Switched state to playback state at time " + d.getTime() + ", starting playback");
-		startPlayback();
-
 	// stop playback
 	} else if(TapApp.state === TapApp.playback_state) {
 		console.log("Switched out of playback state, stopping playback");
 		// stopPlayback(); // currently doesn't do anything anyway
 	}
+
+	// start playback
+	if(newState === TapApp.playback_state) {
+		var d = new Date();
+		console.log("Switched state to playback state at time " + d.getTime() + ", starting playback");
+		startPlayback();
+	// stop playback
+	} 
 	for(var i = 0; i < TapApp.stateButtonArray.length; i++) {
 		if(i === newState) {
 			TapApp.stateButtonArray[i].active = true;
@@ -505,7 +507,7 @@ function stopRecording() {
 }
 
 function returnPlaybackCallback(time, padNumber) {
-	var region = TapApp.regionArray[padNumber]
+	var region = TapApp.regionSet.regionArray[padNumber]
 	return function() { 
 		console.log("It has been " + time + " seconds, playing sample " + padNumber);
 		region.play();
@@ -517,7 +519,7 @@ function startPlayback() {
 		var time = TapApp.recording[i][0];
 		var padNumber = TapApp.recording[i][1];
 		console.log("Setting timeout in " + time + "ms to play sample " + padNumber);
-		setTimeout( returnCallback(time, padNumber), time);
+		setTimeout( returnPlaybackCallback(time, padNumber), time);
 	}
 	var last = TapApp.recording.length-1;
 
@@ -679,11 +681,14 @@ var handleKey = function(event) {
     if (keyLookup[event.keyCode] !== undefined)
     {
     	var regionIndex = keyLookup[event.keyCode];
+    	var region = TapApp.regionSet.regionArray[regionIndex];
     	console.log("Pressed key in array - " + regionIndex);
 
     	//regions should be set up by now.  sorta hacked.
     	//TODO: does this depend on gamestate?
-    	TapApp.regionSet.regionArray[regionIndex].play();
+		if(TapApp.state === TapApp.recording_state)
+			region.record();
+    	region.play();
     }
 }
 
