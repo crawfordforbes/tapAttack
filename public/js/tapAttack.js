@@ -14,8 +14,18 @@ var rounds = parseInt($("#numOfRounds").val());
 
 var playerProto = {
 	name : "",
+	img : undefined,
 	video : undefined
 };
+
+
+function loadPlayerImages(img1, img2) {
+	return;
+	players[0].img = new Image();
+	players[0].img.src = TapApp.imgDir + img1;
+	players[1].img = new Image();
+	players[1].img.src = TapApp.imgDir + img2;
+}
 
 var players = [];
 
@@ -110,6 +120,8 @@ var TapApp = {};
 TapApp.kit = "baindus";
 TapApp.kits= ["808", "ba", "baindus"];
 TapApp.recording = [];
+
+TapApp.imgDir = "png/";
 
 // Program state / mode
 TapApp.learning_state = 0;
@@ -804,18 +816,36 @@ function displayGame(ctx) {
 	if(TapApp.regionSet !== undefined)
 		TapApp.regionSet.display(ctx);
 
+	displayAvatar(players[TapApp.currentPlayer], ctx);
 
 //	indicate(TapApp.app_mode, ctx);  NEXT THING TO WORK ON is transitions between states
 
-
+/*
 	for(var i = 0; i < TapApp.buttonArray.length; i++) {
 		TapApp.buttonArray[i].display(ctx);
 	}
+*/
 
 	indicate_state(TapApp.state, ctx, surface.width, surface.height);	
 }
 
+function displayAvatar(player, ctx) {
+	return;
+	ctx.drawImage(player.img, 0,0, 32, 32);
+	var shadow = 4;
+	var imgSize = 32;
+	var spacing = imgSize / 4;
+	ctx.textAlign("left");
+	ctx.textBaseline("hanging");
+	ctx.font = imgSize + "px Arial";
+	ctx.fillStyle("#000");
+	ctx.fillText(player.name, shadow, shadow, imgSize + shadow, imgSize + shadow);		
+	ctx.fillStyle("#FFF");
+	ctx.fillText(player.name, imgSize + spacing);		
+}
+
 function displaySplash(ctx) {
+	ctx.globalAlpha = 1;		// opacity of text, might have been messed up before?
 	ctx.fillStyle = "#000";
 	ctx.font = "64px Arial";
 	ctx.textAlign = "center";
@@ -866,7 +896,7 @@ var indicate_state = function(state, ctx) {
 		ctx.textAlign = "center";
 		ctx.textBaseline = "middle";
 		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
-		ctx.fillStyle = "#EEE";
+		ctx.fillStyle = "#000";
 		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2-4, surface.height/2-4);		
 	}
 
@@ -1310,6 +1340,7 @@ function loadBackgroundImage() {
 //  main  //
 ////////////
 loadBackgroundImage();
+loadPlayerImages();
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
