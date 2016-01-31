@@ -837,7 +837,7 @@ function incrementRound()
 			votingModal()
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
-			runGameplayPlayback();
+			//runGameplayPlayback();
 
 		}		
 	}	
@@ -1068,9 +1068,10 @@ function votingModal() {
 
 	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
 	for(var i = 0; i < rounds; i++){
-		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0] + ': </p>		<button class="playFinal" id="player0round' + i + '">play</button>	</li>	<li>		<p>' + players[1] + ': </p>		<button class="playFinal" id="player1round' + i + '">play</button>	</li></ul><radiogroup>	<radio id="votePlayer0round' + i + '" label="' + players[0] + '"/>	<radio id="votePlayer1round' + i + '" label="' + players[1] + '"/></radiogroup></li>'
+		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0] + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" value="votePlayer0round' + i + '" name="round' + i + '">	</li>	<li>		<p>' + players[1] + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" value="votePlayer1round' + i + '" name="round' + i + '"/>	</li></ul></li>'
 	}
 	modalString += '</ul><button id="submitVotes">Submit</button></div></div></div>'
+
 
 	$('#votingContainer').html(modalString);
 	$('#votingModal').modal();
