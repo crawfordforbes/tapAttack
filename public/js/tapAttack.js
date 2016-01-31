@@ -1014,7 +1014,9 @@ function incrementRound()
 	TapApp.isSwitchingPlayer = true;
 	TapApp.turnSwitchDisplay = players[TapApp.currentPlayer].name + "'s turn!";
 
-	var waitLen = getMetronomeMilliseconds() * 4 + 1000;
+	var waitBeat =  getMetronomeMilliseconds();
+	var waitLen = waitBeat * 8;
+	var waitPlayer = waitBeat * 4;
 	
 	setTimeout(function() {
 		TapApp.isSwitchingPlayer = false;
@@ -1023,28 +1025,28 @@ function incrementRound()
 	}, waitLen);
 
 	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "4";
+
+		refresh();
+	}, waitPlayer);
+
+	setTimeout(function() {
 		TapApp.turnSwitchDisplay = "3";
-
-		refresh();
-	}, 1000);
-
-	setTimeout(function() {
-		TapApp.turnSwitchDisplay = "2";
 		
 		refresh();
-	}, 1000 + getMetronomeMilliseconds());	
+	}, waitPlayer + waitBeat);	
 
 	setTimeout(function() {
-		TapApp.turnSwitchDisplay = "1";
+		TapApp.turnSwitchDisplay = "Ready?";
 		
 		refresh();
-	}, 1000 + getMetronomeMilliseconds() *2);		
+	}, waitPlayer + waitBeat * 2);		
 
 	setTimeout(function() {
 		TapApp.turnSwitchDisplay = "TAP!";
 		
 		refresh();
-	}, 1000 + getMetronomeMilliseconds() * 3);		
+	}, waitPlayer + waitBeat * 3);		
 }
 
 function nextRound()
@@ -1228,8 +1230,8 @@ function handleXYOn(x, y) {
 	if(region !== null) {
 		var d = new Date();
 		var t = d.getTime();
-		fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
-		playRegion(region);
+		//fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
+		//playRegion(region);
 
 	} else if (TapApp.state === TapApp.learning_state) {
 		region = TapApp.regionSet.addRegion(x, y);
