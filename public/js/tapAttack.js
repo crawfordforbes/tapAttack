@@ -125,6 +125,9 @@ TapApp.buttonArray = [];
 TapApp.stateButtonArray = [];
 TapApp.regionNodeArray = [];
 
+TapApp.gameStarted = false;
+TapApp.gameOver = false;
+
 
 //////////////////////
 //  Gameplay State  //
@@ -135,8 +138,7 @@ TapApp.currentPlayer = 0;
 TapApp.round = null;
 TapApp.roundResult = [];
 TapApp.currentRoundResult = null;
-
-TapApp.nextTurnStartTime = 0;
+TapApp.isSwitchingPlayer = false;
 
 var noteProto = {
    region : undefined,
@@ -437,6 +439,11 @@ var regionProto = {
 	sampleCounter: 0,
 	numSamples: 0,
 
+	setPosition: function(x,y) {
+		this.x = x;
+		this.y = y;
+	},
+
 	display: function(ctx) {
 		ctx.fillStyle = this.color;
 		ctx.beginPath();
@@ -606,6 +613,30 @@ function ensureRegionSet(){
 }
 
 
+function scaleDefaultPads() {
+	//todo:  assumes 4 pads.  should be more generic.
+
+	 var surface = document.getElementById("surface");
+	 var width = surface.width;
+	 var height = surface.height;
+
+	 var midy = height/2;
+	 var xsep = width/4;
+	 var x1 = width/8;
+	 var x2 = (width*7)/8;
+	 var numPads = 8;
+	 var x = x1;
+
+	 for(var i = 0; i < numPads; i++) {
+		 if(i < numPads/2)
+		 	 x = x1+i*(x2-x1-xsep)/2/(numPads/2-1)
+		 else
+		 	 x = x2-(numPads-1-i)*(x2-x1-xsep)/2/(numPads/2-1)
+		 TapApp.regionSet.regionArray[i].setPosition(x,midy);
+	 }
+
+}
+
 function createDefaultPads() {
 	 ensureRegionSet();
 	 var colors = [
@@ -617,13 +648,29 @@ function createDefaultPads() {
 		"#00F",
 		"#00F",
 		"#00F"
-	 ]
-	 for(var i = 0; i < 8; i++) {
-	 TapApp.regionSet.addTypedRegion((200+200*Math.floor(i/4)+100*i),400,
-			colors[i],
-			TapApp.sampleBank[1][1][i]
-	 );
-	}
+	 ];
+
+	 var surface = document.getElementById("surface");
+	 var width = surface.width;
+	 var height = surface.height;
+
+	 var midy = height/2;
+	 var xsep = width/4;
+	 var x1 = width/8;
+	 var x2 = (width*7)/8;
+	 var numPads = 8;
+	 var x = x1;
+
+	 for(var i = 0; i < numPads; i++) {
+		 if(i < numPads/2)
+		 	 x = x1+i*(x2-x1-xsep)/(numPads/2-1)
+		 else
+		 	 x = x2-(numPads-1-i)*(x2-x1-xsep)/(numPads/2-1)
+		 TapApp.regionSet.addTypedRegion(x,midy,
+				colors[i],
+				TapApp.sampleBank[1][1][i]
+		 );
+	 }
 }
 
 
@@ -739,9 +786,7 @@ var resize = function() {
 	var scaleX = surface.width / oldWidth;
 	var scaleY = surface.height / oldHeight;
 
-    //todo: make it work!
-	//if(TapApp.regionSet !== undefined)
-	//  TapApp.regionTree.scale(scaleX, scaleY);
+    scaleDefaultPads();
 
 	// handle changing radius size
 
@@ -751,13 +796,7 @@ var resize = function() {
 	refresh();
 }
 
-var refresh = function() {
-	surface = document.getElementById("surface");
-	var ctx = surface.getContext('2d');
-	ctx.clearRect(0, 0, surface.width, surface.height);
-	ctx.fillStyle = "#FFF";
-	ctx.fillRect(0, 0, surface.width, surface.height);
-
+function displayGame(ctx) {
 
 	if(TapApp.regionSet !== undefined)
 		TapApp.regionSet.display(ctx);
@@ -770,8 +809,29 @@ var refresh = function() {
 		TapApp.buttonArray[i].display(ctx);
 	}
 
-	indicate_state(TapApp.state, ctx, surface.width, surface.height);
+	indicate_state(TapApp.state, ctx, surface.width, surface.height);	
+}
 
+function displaySplash(ctx) {
+	ctx.fillStyle = "#AAA";
+	ctx.font = "64px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText("TAP BATTLE", surface.width/2, surface.height/2);		
+}
+
+var refresh = function() {
+	surface = document.getElementById("surface");
+	var ctx = surface.getContext('2d');
+	ctx.clearRect(0, 0, surface.width, surface.height);
+	ctx.fillStyle = "#FFF";
+	ctx.fillRect(0, 0, surface.width, surface.height);
+
+
+	if (!TapApp.gameStarted) {
+		displaySplash(ctx);
+	} else {
+		displayGame(ctx);	
+	}
 }
 
 // Indicators //
@@ -840,11 +900,9 @@ var indicate_state = function(state, ctx) {
 
 
 //returns false if done playing....
-
 function canTap()
 {
-	var d = new Date();
-	return d.getTime() > TapApp.nextTurnStartTime;
+	return !TapApp.isSwitchingPlayer;
 }
 
 function playNextNote()
@@ -916,6 +974,7 @@ function incrementRound()
 				toggleMetronome();	
 			}
 
+			TapApp.gameOver = true;
 			votingModal();
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
@@ -923,8 +982,11 @@ function incrementRound()
 			return;
 		}		
 	}	
-	var d = new Date();
-	TapApp.nextTurnStartTime = d.getTime() + TapApp.nextTurnWaitTime;
+	TapApp.isSwitchingPlayer = true;
+	setTimeout(function() {
+		TapApp.isSwitchingPlayer = false;
+		refresh();
+	}, TapApp.nextTurnWaitTime);
 }
 
 function nextRound()
@@ -939,19 +1001,13 @@ function nextRound()
 
 	refresh();
 
-	setTimeout(function() {
-			refresh(); 
-			}, 
-		TapApp.nextTurnWaitTime + 50
-	);
-
 	startRound();
 }
 
 //todo: give this a better home
 function playRegionGameplayUpdate(region)
 {
-    if (TapApp.round !== undefined)
+    if (TapApp.round)
     {
     	if (TapApp.round.startTime === undefined)
     	{
@@ -1015,7 +1071,7 @@ var handleKey = function(event) {
     if (keyLookup[event.keyCode] !== undefined)
     {
     	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
-
+    	if (TapApp.gameOver) return;
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
     	playRegion(region);
@@ -1154,6 +1210,7 @@ function startRound() {
 
 function startGame()
 {
+	TapApp.gameStarted = true;
 	TapApp.roundNumber = 0;
 	TapApp.currentPlayer = 0;
 	nextRound();
@@ -1165,10 +1222,10 @@ function votingModal() {
 	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
 	for(var i = 0; i < rounds; i++){
 
-		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" value="votePlayer0round' + i + '" name="round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" value="votePlayer1round' + i + '" name="round' + i + '"/>	</li></ul></li>'
+		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
 
 	}
-	modalString += '</ul><button id="submitVotes">Submit</button></div></div></div>'
+	modalString += '</ul><button id="submitVotes" onclick="chooseWinner()">Submit</button></div></div></div>'
 
 
 	$('#votingContainer').html(modalString);
@@ -1176,13 +1233,50 @@ function votingModal() {
     return false;
 
 }
+function chooseWinner() {
+	var p1score = 0;
+	var p2score = 0;
+	for(var i = 0; i < rounds; i++){
+
+		if($('input[name=votePlayer0Round' + i + ']:checked').val()){
+
+			p1score++
+		} else if($('input[name=votePlayer1Round' + i + ']:checked').val()){
+
+			p2score++
+		} else {
+			alert("please vote on all rounds");
+			return
+		}
+	}
+	if(p1score > p2score){
+		showWinner(1)
+	} else {
+		showWinner(2)
+	}
+}
+
+function showWinner(id){
+	$('#votingModal').modal('toggle');
+	var name = $("#player" + id).val();
+	var ytube = $("#player" + id + "Video").val();
+	var url = ytube.split("/")[3];
+
+	document.body.innerHTML ='<h2>CONGRATULATIONS ' + name +'</h2><iframe width="560" height="315" src="https://www.youtube.com/embed/' + url + '" frameborder="0" allowfullscreen></iframe><br /><button onclick="restart()">Play again</button>'
+
+	
+}
+function restart(){
+	window.location.reload();
+}
+
 ////////////
 //  main  //
 ////////////
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
-setState(TapApp.freeplay_state)
+setState(TapApp.freeplay_state);
 resize();
 determineDateDelay();
  
