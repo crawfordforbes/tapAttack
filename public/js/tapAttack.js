@@ -599,8 +599,8 @@ function scaleDefaultPads() {
 
 
 	 TapApp.regionSet.regionArray[0].setPosition(x1,y);
-	 TapApp.regionSet.regionArray[1].setPosition(x1+100,y);
-	 TapApp.regionSet.regionArray[2].setPosition(x2-100,y);
+	 TapApp.regionSet.regionArray[1].setPosition(x1+125,y);
+	 TapApp.regionSet.regionArray[2].setPosition(x2-125,y);
 	 TapApp.regionSet.regionArray[3].setPosition(x2,y);
 }
 
@@ -617,8 +617,8 @@ function createDefaultPads() {
 
 
 	 TapApp.regionSet.addTypedRegion(x1,y,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
-	 TapApp.regionSet.addTypedRegion(x1+100,y,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
-	 TapApp.regionSet.addTypedRegion(x2-100,y,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
+	 TapApp.regionSet.addTypedRegion(x1+125,y,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
+	 TapApp.regionSet.addTypedRegion(x2-125,y,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
 	 TapApp.regionSet.addTypedRegion(x2,y,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
 }
 
