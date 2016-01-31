@@ -76,7 +76,7 @@ function toggleMetronome() {
 if (metronomeToggle === false){	
 		metronome = setInterval(
 			function(){
-				snare.play({volume : 0.4});
+				snare.play({volume : 0.3});
 			}, getMetronomeMilliseconds()
 		)
 		metronomeButton.text("stop metronome")
@@ -903,25 +903,7 @@ function displayCountdownText(ctx, text) {
 var indicate_state = function(state, ctx) {
 
 	if (!canTap())
-	{
-		console.log("Surface width: " + surface.width);
-		var rectX = surface.width/4;
-		var rectY = surface.height/4;
-		var rectW = surface.width/2;
-		var rectH = surface.height/2;
-		ctx.globalAlpha = 0.8;
-		ctx.fillStyle = "#999";
-		ctx.strokeStyle = "#000";
-		ctx.fillRect(rectX, rectY, rectW, rectH);
-		ctx.globalAlpha = 1;
-		ctx.strokeRect(rectX, rectY, rectW, rectH);
-		ctx.fillStyle = "#FFF";
-		ctx.font = "64px Arial";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
-		ctx.fillStyle = "#000";
-		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2-4, surface.height/2-4);		
+	{	
 		displayCountdownText(ctx, TapApp.turnSwitchDisplay);
 	}
 
