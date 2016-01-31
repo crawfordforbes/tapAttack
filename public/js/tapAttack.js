@@ -51,14 +51,16 @@ var metronomeButton = $("#metronome");
 var metronomeToggle = false;
 var metronome;
 var snare = new Wad(Wad.presets.snare);
+
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
 	var secondsPerBeat = 1 / beatsPerSecond;
     return secondsPerBeat * 1000.0;
 }
 
-metronomeButton.click(function(){
-	if (metronomeToggle === false){	
+function toggleMetronome() {
+
+if (metronomeToggle === false){	
 		metronome = setInterval(
 			function(){
 				snare.play();
@@ -71,6 +73,11 @@ metronomeButton.click(function(){
 		metronomeButton.text("start metronome");
 		metronomeToggle = false;
 	}
+}
+
+
+metronomeButton.click(function(){
+	toggleMetronome();
 })
 
 
@@ -78,7 +85,7 @@ metronomeButton.click(function(){
 function doNothing() {
 }
 
-var useConsole = true;
+var useConsole = false;
 function fauxConsole(str) {																					
 	if(useConsole)
 		document.getElementById("console").innerHTML=str;
@@ -268,7 +275,7 @@ var buttonProto = {
 	}
 	
 };
-
+/*
 TapApp.learningButton = Object.create(buttonProto);
 TapApp.learningButton.init(10, 10, 40, 40, "#EE0", "#FF0");
 TapApp.learningButton.onpress = function() {
@@ -305,7 +312,7 @@ TapApp.playButton.onpress = function() {
 		console.log("At time " + TapApp.recording[s][0] + " play " + TapApp.recording[s][1]);
 	}
 };
-
+*/
 function setState(newState) {
 	console.log("Setting state from " + TapApp.state + " to " + newState);
 
@@ -334,6 +341,7 @@ function setState(newState) {
 		//startPlayback();
 	// stop playback
 	} 
+	/*
 	for(var i = 0; i < TapApp.stateButtonArray.length; i++) {
 		if(i === newState) {
 			TapApp.stateButtonArray[i].active = true;
@@ -341,6 +349,7 @@ function setState(newState) {
 			TapApp.stateButtonArray[i].active = false;
 		}
 	}
+	*/
 	TapApp.state = newState;
 	refresh();
 };
@@ -476,8 +485,7 @@ var regionProto = {
 	changeColor: function(rgb) {
 	},
 	deactivate: function() { 
-		this.active = false; 
-		//console.log("Deactivated region " + this.id); 
+		this.active = false;
 		refresh(); 
 	}
 }
@@ -735,7 +743,7 @@ var refresh = function() {
 // Indicators //
 
 var indicate_state = function(state, ctx) {
-	switch(state) {
+	/*switch(state) {
 		case TapApp.recording_state:
 			ctx.fillStyle = TapApp.recordButton.afCol;
 			ctx.beginPath();
@@ -783,7 +791,7 @@ var indicate_state = function(state, ctx) {
 	
 		default:
 			console.log("Unknown state " + state + " was indicated");
-	}
+	}*/
 };
 
 
@@ -854,7 +862,10 @@ function incrementRound()
 		if (TapApp.roundNumber === rounds)
 		{
 
-			console.log("Game is over here but we're going to just keep going for now");		
+			if (metronomeToggle) {
+				toggleMetronome();	
+			}
+
 			votingModal()
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
