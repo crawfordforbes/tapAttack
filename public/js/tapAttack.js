@@ -1279,10 +1279,10 @@ function startGame()
 
 function votingModal() {
 
-	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
+	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2 style="text-align: center;">VOTING</h2><ul style="list-style: none;">'
 	for(var i = 0; i < rounds; i++){
-
-		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
+		var x = i + 1;
+		modalString += '<li><h3>ROUND ' + x + '</h3><ul style="list-style: none;"><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
 
 	}
 	modalString += '</ul><button id="submitVotes" onclick="chooseWinner()">Submit</button></div></div></div>'
