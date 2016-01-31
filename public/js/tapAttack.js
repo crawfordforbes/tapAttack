@@ -135,6 +135,8 @@ TapApp.round = null;
 TapApp.roundResult = [];
 TapApp.currentRoundResult = null;
 
+TapApp.nextTurnStartTime = 0;
+
 var noteProto = {
    region : undefined,
    time : undefined
@@ -174,6 +176,8 @@ TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 TapApp.r1 = 50;	// radius used to designate "center" of region
 TapApp.r2 = 70;
 
+
+TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
 
 // TapApp.audioDirectory = "../mp3/";
 TapApp.audioDirectory = "mp3/";
@@ -743,6 +747,15 @@ var refresh = function() {
 // Indicators //
 
 var indicate_state = function(state, ctx) {
+
+	if (!canTap())
+	{
+		ctx.fillStyle = "#888";
+		ctx.font = "32px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
+	}
+
 	/*switch(state) {
 		case TapApp.recording_state:
 			ctx.fillStyle = TapApp.recordButton.afCol;
@@ -797,6 +810,13 @@ var indicate_state = function(state, ctx) {
 
 
 //returns false if done playing....
+
+function canTap()
+{
+	var d = new Date();
+	return d.getTime() > TapApp.nextTurnStartTime;
+}
+
 function playNextNote()
 {
 	var roundResult = TapApp.roundResult[TapApp.playbackIndex];
@@ -866,13 +886,15 @@ function incrementRound()
 				toggleMetronome();	
 			}
 
-			votingModal()
+			votingModal();
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
 			//runGameplayPlayback();
-
+			return;
 		}		
 	}	
+	var d = new Date();
+	TapApp.nextTurnStartTime = d.getTime() + TapApp.nextTurnWaitTime;
 }
 
 function nextRound()
@@ -884,6 +906,14 @@ function nextRound()
 	TapApp.currentRoundResult.notes = [];
 
 	console.log(players[TapApp.currentPlayer].name + "'s turn!");		
+
+	refresh();
+
+	setTimeout(function() {
+			refresh(); 
+			}, 
+		TapApp.nextTurnWaitTime + 50
+	);
 
 	startRound();
 }
@@ -946,14 +976,14 @@ var handleKey = function(event) {
 	{
 		if (event.repeat) return;
 	}
-	console.log("Pressed key - " + event.keyCode);
 
 
     if (keyLookup[event.keyCode] !== undefined)
     {
+    	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
+
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
-    	console.log("Pressed key in array - " + regionIndex);
     	playRegion(region);
     }
 }
