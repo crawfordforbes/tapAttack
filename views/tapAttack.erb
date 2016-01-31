@@ -1,101 +1,123 @@
 <!-- tapApp.html
-		 intuitive rhythm composition -->
+	intuitive rhythm composition -->
 
-<html>
+	<html>
 	<head>
 		<title>Tap App | Three Right Angles</title>
 		<meta charset="utf-8">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 		<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" ref="./styles/styles.css">
 
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<style>
+		canvas {
+			overflow: hidden;
+		}
+		#menu {
+			padding: 15px;
+		}
 
+		.meta{
+			margin-left: 15px;
+		}
+
+		</style>
 
 	</head>
 
 	<body onkeydown="handleKey(event)"  
-				onmousedown="handleMouseDown(event)" 
-				ontouchstart="handleTouchStart(event)"	
-				ontouchmove="handleTouchMove(event)"	
-				ontouchend="handleTouchEnd(event)"	
-				onresize="resize()" 	
-				style="margin : 0px">
+	onmousedown="handleMouseDown(event)" 
+	ontouchstart="handleTouchStart(event)"	
+	ontouchmove="handleTouchMove(event)"	
+	ontouchend="handleTouchEnd(event)"	
+	onresize="resize()" 	
+	style="margin : 0px">
 	
 	<!-- OPTIONS -->
 	<!-- Button trigger modal -->
+	<div class="container">
+		<div id="menuModal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div id="menu">
+						<div class="row">
 
-	<div id="menuModal" class="modal fade" tabindex="-1" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-				<div id="menu">
-					<label for="player1">Player 1 name:</label>
-					<input type="text" name="player1" id="player1" value="Reverend Run"/>
-					<label for="player2">Player 2 name:</label>
-					<input type="text" name="player2" id="player2" value="DJ Tanner"/>
-					<label for="player1Video">Player 1 video:</label>
-					<input type="text" name="player1Video" id="player1Video" value="https://youtu.be/dQw4w9WgXcQ"/>
-					<label for="player2Video">Player 2 video:</label>
-					<input type="text" name="player2Video" id="player2Video" value="https://youtu.be/9bZkp7q19f0"/>					
-					<label for="numOfRounds">How many rounds?</label>
-					<select id="numOfRounds">
-						<option>1</option>
-						<option>5</option>
-						<option>7</option>
-					</select>
-					<label for="bpm">BPM</label>
-						<select id="bpm">
-							<option>300</option>
-							<option>120</option>
-							<option>140</option>
-							<option>160</option>
-						</select>
-					<label for="numOfMeasures">How many measures?</label>
-						<select id="numOfMeasures">
-							<option>2</option>
-							<option>4</option>
-							<option>6</option>
-						</select>
-					<label for="kit">What are you playing?</label>
+							<label class="meta" for="player1">Player 1 name:</label>
+							<input  type="text" name="player1" id="player1" value="Reverend Run"/>
+
+							<label class="meta"for="player1Video">Player 1 swagger:</label>
+							<input  type="text" name="player1Video" id="player1Video" value="https://youtu.be/dQw4w9WgXcQ"/>
+							
+
+						</div>
+						<div class="row">
+							<label class="meta" for="player2">Player 2 name:</label>
+							<input type="text" name="player2" id="player2" value="DJ Tanner"/>	
+
+							<label class="meta" for="player2Video">Player 2 swagger:</label>
+							<input type="text" name="player2Video" id="player2Video" value="https://youtu.be/9bZkp7q19f0"/>		
+						</div>
+						<div class="row">
+							<div class="col-md-10 col-md-offset-1">
+								<label for="numOfRounds">How many rounds?</label>
+								<select id="numOfRounds">
+									<option>1</option>
+									<option>3</option>
+									<option>5</option>
+								</select>
+
+								<label for="bpm">BPM</label>
+								<select id="bpm">
+									<option>92</option>
+									<option>120</option>
+									<option>140</option>
+									<option>160</option>
+								</select>
+
+								<label for="numOfMeasures">How many measures?</label>
+								<select id="numOfMeasures">
+									<option>2</option>
+									<option>4</option>
+									<option>6</option>
+								</select>
+							</div>
+						</div>
+<!-- 						<label for="kit">What are you playing?</label>
 						<select>
 							<option>808</option>
-						</select>
-						<button id="startGame" data-dismiss="modal">Start!</button>
-				</div>
-	    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+						</select> -->
+						<div class="row">
+							<button class="col-md-offset-4 col-md-3" id="startGame" data-dismiss="modal">Go HAM!</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+		</div>
+		<!-- out of canvas elements -->
 
-<!-- out of canvas elements -->
-<div class="container">
-<div class="row">
-	<button class="col-md-2 col-offset-md-2"id="metronome">start metronome</button>
-	<p class="col-md-3">Current player is <span class="currentPlayer"></span></p>
-</div>
-</div>
 
-<!-- endgame voting -->
-<div id="votingContainer">
-</div>
+		<!-- endgame voting -->
+		<div id="votingContainer">
+		</div>
+	</div>
+	<!-- GAME -->
+	<canvas id="surface"> </canvas>
+	<div id="console" style="height : 20px; visibility: hidden;"> </div>
+	<script>
+	var hints = ["Tap anywhere (except this console)"];
+	document.getElementById("console").innerHTML="Hint: " + hints[0];
+	</script>
 
-		<!-- GAME -->
-		<canvas id="surface"> </canvas>
-	
-		<div id="console" style="height : 20px"> </div>
-
-		<script>
-			var hints = ["Tap anywhere (except this console)"];
-			document.getElementById("console").innerHTML="Hint: " + hints[0];
-		</script>
-
-		<script type="application/javascript">
-$(document).ready(function(){
-  $('#menuModal').modal();
-    return false;
-});    
-</script> 
-<script src="./js/wad.js"></script>
-<script src="./js/tapAttack.js"></script>
-	</body>
+	<script type="application/javascript">
+	$(document).ready(function(){
+		$('#menuModal').modal();
+		return false;
+	});    
+	</script> 
+	<script src="./js/wad.js"></script>
+	<script src="./js/tapAttack.js"></script>
+</body>
 </html>

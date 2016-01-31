@@ -1064,7 +1064,9 @@ function incrementRound()
 	TapApp.isSwitchingPlayer = true;
 	TapApp.turnSwitchDisplay = players[TapApp.currentPlayer].name + "'s turn!";
 
-	var waitLen = getMetronomeMilliseconds() * 4 + 1000;
+	var waitBeat =  getMetronomeMilliseconds();
+	var waitLen = waitBeat * 8;
+	var waitPlayer = waitBeat * 4;
 	
 	setTimeout(function() {
 		TapApp.isSwitchingPlayer = false;
@@ -1073,28 +1075,28 @@ function incrementRound()
 	}, waitLen);
 
 	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "4";
+
+		refresh();
+	}, waitPlayer);
+
+	setTimeout(function() {
 		TapApp.turnSwitchDisplay = "3";
-
-		refresh();
-	}, 1000);
-
-	setTimeout(function() {
-		TapApp.turnSwitchDisplay = "2";
 		
 		refresh();
-	}, 1000 + getMetronomeMilliseconds());	
+	}, waitPlayer + waitBeat);	
 
 	setTimeout(function() {
-		TapApp.turnSwitchDisplay = "1";
+		TapApp.turnSwitchDisplay = "Ready?";
 		
 		refresh();
-	}, 1000 + getMetronomeMilliseconds() *2);		
+	}, waitPlayer + waitBeat * 2);		
 
 	setTimeout(function() {
 		TapApp.turnSwitchDisplay = "TAP!";
 		
 		refresh();
-	}, 1000 + getMetronomeMilliseconds() * 3);		
+	}, waitPlayer + waitBeat * 3);		
 }
 
 function nextRound()
@@ -1181,6 +1183,7 @@ var handleKey = function(event) {
     {
     	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
     	if (TapApp.gameOver) return;
+    	if (!TapApp.gameStarted) return;
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
     	playRegion(region);
@@ -1278,8 +1281,8 @@ function handleXYOn(x, y) {
 	if(region !== null) {
 		var d = new Date();
 		var t = d.getTime();
-		fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
-		playRegion(region);
+		//fauxConsole((t - TapApp.startTime) + ": " + TapApp.startTime + " to " + t);
+		//playRegion(region);
 
 	} else if (TapApp.state === TapApp.learning_state) {
 		region = TapApp.regionSet.addRegion(x, y);
@@ -1329,10 +1332,10 @@ function startGame()
 
 function votingModal() {
 
-	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
+	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2 style="text-align: center;">VOTING</h2><ul style="list-style: none;">'
 	for(var i = 0; i < rounds; i++){
-
-		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
+		var x = i + 1;
+		modalString += '<li><h3>ROUND ' + x + '</h3><ul style="list-style: none;"><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
 
 	}
 	modalString += '</ul><button id="submitVotes" onclick="chooseWinner()">Submit</button></div></div></div>'
