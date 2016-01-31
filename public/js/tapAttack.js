@@ -126,7 +126,11 @@ TapApp.stateButtonArray = [];
 TapApp.regionNodeArray = [];
 
 TapApp.gameStarted = false;
+TapApp.gameOver = false;
 
+TapApp.backgroundLoaded = false;
+
+TapApp.turnSwitchDisplay = "";
 
 //////////////////////
 //  Gameplay State  //
@@ -175,11 +179,10 @@ TapApp.button_delay = 100;
 TapApp.threshold = 70;  //  larger than the radius to be nice, we don't want to accidentally make a new one or miss a tap
 TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 
-TapApp.r1 = 50;	// radius used to designate "center" of region
-TapApp.r2 = 70;
+TapApp.r1 = 40;	// radius used to designate "center" of region
+TapApp.r2 = 60;
 
-
-TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
+TapApp.backgroundImage = null;
 
 // TapApp.audioDirectory = "../mp3/";
 TapApp.audioDirectory = "mp3/";
@@ -193,8 +196,32 @@ TapApp.learningStripData = [
 		[.3, "#F00", "taa", 0], 
 		[.6, "#F80", "taah", 0],
 		[.8, "#0D0", "toh", 0], 
-		[ 1, "#00F", "ting", 0]
+		[ 1, "#00F", "tosh", 0]
 ];
+
+TapApp.sampleBank = [
+	["808", [ "hi_conga", "kick1", "snare", "hightom" ]],
+	["baindus", [ 
+		"tosh",
+		"tosh",
+		"tosh",
+		"snop",
+		"snop",
+		"taa",
+		"taa",
+		"taa",
+		"snap", 	
+		"taah", 
+		"taa", 
+		"snop", 
+		"tosh", 
+		"ting", 
+		"toh",
+		"ting"
+	 ]
+	]
+];
+
 
 TapApp.patchHash = {
 	"hi tom": "hightom", 
@@ -214,7 +241,10 @@ TapApp.playbackRate = 10;  // how long the callback waits before calling itself 
 var hexDigits = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ];
 function toHex(i) { return hexDigits[Math.floor(i/16)] + hexDigits[i%16]; }
 
-function rgb(red, green, blue) { return "#" + toHex(red) + toHex(green) + toHex(blue); }
+function rgb(red, green, blue) { return "#" 
+		+ toHex(Math.floor(red)) 
+		+ toHex(Math.floor(green)) 
+		+ toHex(Math.floor(blue)); }
 
 function arbitraryColor() {
 	var color = "#";
@@ -441,7 +471,7 @@ var regionProto = {
 			var stripNum = getStrip(this.y);
 			playStripSample(stripNum);
 		} else {
-			console.log("Playing copy " + this.sampleCounter);
+			// console.log("Playing copy " + this.sampleCounter);
 			this.samples[this.sampleCounter].play();
 			this.sampleCounter = (this.sampleCounter + 1) % this.numSamples;
 		}
@@ -592,33 +622,57 @@ function scaleDefaultPads() {
 	 var width = surface.width;
 	 var height = surface.height;
 
-	 var y = height/2;
+	 var midy = height/2;
+	 var xsep = width/4;
 	 var x1 = width/8;
 	 var x2 = (width*7)/8;
+	 var numPads = 8;
+	 var x = x1;
 
+	 for(var i = 0; i < numPads; i++) {
+		 if(i < numPads/2)
+		 	 x = x1+i*(x2-x1-xsep)/2/(numPads/2-1)
+		 else
+		 	 x = x2-(numPads-1-i)*(x2-x1-xsep)/2/(numPads/2-1)
+		 TapApp.regionSet.regionArray[i].setPosition(x,midy);
+	 }
 
-	 TapApp.regionSet.regionArray[0].setPosition(x1,y);
-	 TapApp.regionSet.regionArray[1].setPosition(x1+100,y);
-	 TapApp.regionSet.regionArray[2].setPosition(x2-100,y);
-	 TapApp.regionSet.regionArray[3].setPosition(x2,y);
 }
 
 function createDefaultPads() {
 	 ensureRegionSet();
+	 var colors = [
+		"#F80",
+		"#F80",
+		"#F80",
+		"#F00",
+		"#F00",
+		"#00F",
+		"#00F",
+		"#00F"
+	 ];
 
 	 var surface = document.getElementById("surface");
 	 var width = surface.width;
 	 var height = surface.height;
 
-	 var y = height/2;
+	 var midy = height/2;
+	 var xsep = width/4;
 	 var x1 = width/8;
 	 var x2 = (width*7)/8;
+	 var numPads = 8;
+	 var x = x1;
 
-
-	 TapApp.regionSet.addTypedRegion(x1,y,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
-	 TapApp.regionSet.addTypedRegion(x1+100,y,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
-	 TapApp.regionSet.addTypedRegion(x2-100,y,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
-	 TapApp.regionSet.addTypedRegion(x2,y,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
+	 for(var i = 0; i < numPads; i++) {
+		 if(i < numPads/2)
+		 	 x = x1+i*(x2-x1-xsep)/(numPads/2-1)
+		 else
+		 	 x = x2-(numPads-1-i)*(x2-x1-xsep)/(numPads/2-1)
+		 TapApp.regionSet.addTypedRegion(x,midy,
+				colors[i],
+				TapApp.sampleBank[1][1][i]
+		 );
+	 }
 }
 
 
@@ -761,10 +815,12 @@ function displayGame(ctx) {
 }
 
 function displaySplash(ctx) {
-	ctx.fillStyle = "#AAA";
+	ctx.fillStyle = "#000";
 	ctx.font = "64px Arial";
 	ctx.textAlign = "center";
 	ctx.fillText("TAP BATTLE", surface.width/2, surface.height/2);		
+	ctx.fillStyle = "#EEE";
+	ctx.fillText("TAP BATTLE", surface.width/2-4, surface.height/2-4);			
 }
 
 var refresh = function() {
@@ -773,6 +829,11 @@ var refresh = function() {
 	ctx.clearRect(0, 0, surface.width, surface.height);
 	ctx.fillStyle = "#FFF";
 	ctx.fillRect(0, 0, surface.width, surface.height);
+
+	if (TapApp.backgroundLoaded)
+	{
+		ctx.drawImage(TapApp.backgroundImage, 0,0, surface.width, surface.height);
+	}
 
 
 	if (!TapApp.gameStarted) {
@@ -784,14 +845,34 @@ var refresh = function() {
 
 // Indicators //
 
+function displayCountdownText(ctx, text) {
+	var rectX = surface.width/4;
+	var rectY = surface.height/4;
+	var rectW = surface.width/2;
+	var rectH = surface.height/2;
+	ctx.globalAlpha = 0.8;
+	ctx.fillStyle = "#999";
+	ctx.strokeStyle = "#000";
+	ctx.fillRect(rectX, rectY, rectW, rectH);
+	ctx.globalAlpha = 1;
+	ctx.strokeRect(rectX, rectY, rectW, rectH);
+	ctx.fillStyle = "#FFF";
+	ctx.font = "64px Arial";
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	ctx.fillStyle = "#000";
+	ctx.fillText(text, surface.width/2, surface.height/2);		
+	ctx.fillStyle = "#EEE";
+	ctx.fillText(text, surface.width/2-4, surface.height/2-4);		
+}
+
 var indicate_state = function(state, ctx) {
 
 	if (!canTap())
 	{
-		ctx.fillStyle = "#888";
-		ctx.font = "32px Arial";
-		ctx.textAlign = "center";
-		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
+		console.log("Surface width: " + surface.width);
+
+		displayCountdownText(ctx, TapApp.turnSwitchDisplay);
 	}
 
 	/*switch(state) {
@@ -848,7 +929,6 @@ var indicate_state = function(state, ctx) {
 
 
 //returns false if done playing....
-
 function canTap()
 {
 	return !TapApp.isSwitchingPlayer;
@@ -923,6 +1003,7 @@ function incrementRound()
 				toggleMetronome();	
 			}
 
+			TapApp.gameOver = true;
 			votingModal();
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
@@ -931,10 +1012,39 @@ function incrementRound()
 		}		
 	}	
 	TapApp.isSwitchingPlayer = true;
+	TapApp.turnSwitchDisplay = players[TapApp.currentPlayer].name + "'s turn!";
+
+	var waitLen = getMetronomeMilliseconds() * 4 + 1000;
+	
 	setTimeout(function() {
 		TapApp.isSwitchingPlayer = false;
+
 		refresh();
-	}, TapApp.nextTurnWaitTime);
+	}, waitLen);
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "3";
+
+		refresh();
+	}, 1000);
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "2";
+		
+		refresh();
+	}, 1000 + getMetronomeMilliseconds());	
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "1";
+		
+		refresh();
+	}, 1000 + getMetronomeMilliseconds() *2);		
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "TAP!";
+		
+		refresh();
+	}, 1000 + getMetronomeMilliseconds() * 3);		
 }
 
 function nextRound()
@@ -1000,22 +1110,27 @@ function playRegion(region)
 
 //set default keys
 var keyLookup = [];
-keyLookup[68] = 0;
-keyLookup[70] = 1;
-keyLookup[74] = 2;
-keyLookup[75] = 3;
+keyLookup[65] = 0;
+keyLookup[83] = 1;
+keyLookup[68] = 2;
+keyLookup[70] = 3;
+keyLookup[74] = 4;
+keyLookup[75] = 5;
+keyLookup[76] = 6;
+keyLookup[59] = 7;
+keyLookup[186] = 7;
 
 var handleKey = function(event) {
 	if (event.repeat !== undefined)
 	{
 		if (event.repeat) return;
 	}
-
+		console.log("Pressed key " + event.keyCode);
 
     if (keyLookup[event.keyCode] !== undefined)
     {
     	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
-
+    	if (TapApp.gameOver) return;
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
     	playRegion(region);
@@ -1157,6 +1272,7 @@ function startGame()
 	TapApp.gameStarted = true;
 	TapApp.roundNumber = 0;
 	TapApp.currentPlayer = 0;
+	toggleMetronome();
 	nextRound();
 }
 
@@ -1214,9 +1330,22 @@ function restart(){
 	window.location.reload();
 }
 
+
+function loadBackgroundImage() {
+
+	TapApp.backgroundImage =  new Image();
+
+    TapApp.backgroundImage.onload = function() {
+    	TapApp.backgroundLoaded = true;    
+    	refresh();
+    };
+    TapApp.backgroundImage.src = 'png/bg-checkerboard.png';
+}
+
 ////////////
 //  main  //
 ////////////
+loadBackgroundImage();
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
