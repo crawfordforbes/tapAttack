@@ -419,6 +419,11 @@ var regionProto = {
 	sampleCounter: 0,
 	numSamples: 0,
 
+	setPosition: function(x,y) {
+		this.x = x;
+		this.y = y;
+	},
+
 	display: function(ctx) {
 		ctx.fillStyle = this.color;
 		ctx.beginPath();
@@ -588,12 +593,40 @@ function ensureRegionSet(){
 }
 
 
+function scaleDefaultPads() {
+	//todo:  assumes 4 pads.  should be more generic.
+
+	 var surface = document.getElementById("surface");
+	 var width = surface.width;
+	 var height = surface.height;
+
+	 var y = height/2;
+	 var x1 = width/8;
+	 var x2 = (width*7)/8;
+
+
+	 TapApp.regionSet.regionArray[0].setPosition(x1,y);
+	 TapApp.regionSet.regionArray[1].setPosition(x1+100,y);
+	 TapApp.regionSet.regionArray[2].setPosition(x2-100,y);
+	 TapApp.regionSet.regionArray[3].setPosition(x2,y);
+}
+
 function createDefaultPads() {
 	 ensureRegionSet();
-	 TapApp.regionSet.addTypedRegion(200,500,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
-	 TapApp.regionSet.addTypedRegion(300,500,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
-	 TapApp.regionSet.addTypedRegion(800,500,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
-	 TapApp.regionSet.addTypedRegion(900,500,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
+
+	 var surface = document.getElementById("surface");
+	 var width = surface.width;
+	 var height = surface.height;
+
+	 var y = height/2;
+	 var x1 = width/8;
+	 var x2 = (width*7)/8;
+
+
+	 TapApp.regionSet.addTypedRegion(x1,y,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
+	 TapApp.regionSet.addTypedRegion(x1+100,y,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
+	 TapApp.regionSet.addTypedRegion(x2-100,y,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
+	 TapApp.regionSet.addTypedRegion(x2,y,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
 }
 
 
@@ -709,9 +742,7 @@ var resize = function() {
 	var scaleX = surface.width / oldWidth;
 	var scaleY = surface.height / oldHeight;
 
-    //todo: make it work!
-	//if(TapApp.regionSet !== undefined)
-	//  TapApp.regionTree.scale(scaleX, scaleY);
+    scaleDefaultPads();
 
 	// handle changing radius size
 
@@ -921,7 +952,7 @@ function nextRound()
 //todo: give this a better home
 function playRegionGameplayUpdate(region)
 {
-    if (TapApp.round !== undefined)
+    if (TapApp.round)
     {
     	if (TapApp.round.startTime === undefined)
     	{
@@ -1148,7 +1179,7 @@ function votingModal() {
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
-setState(TapApp.freeplay_state)
+setState(TapApp.freeplay_state);
 resize();
 determineDateDelay();
  
