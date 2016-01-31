@@ -63,7 +63,7 @@ function toggleMetronome() {
 if (metronomeToggle === false){	
 		metronome = setInterval(
 			function(){
-				snare.play();
+				snare.play({volume : 0.4});
 			}, getMetronomeMilliseconds()
 		)
 		metronomeButton.text("stop metronome")
