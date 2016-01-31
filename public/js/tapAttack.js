@@ -51,14 +51,16 @@ var metronomeButton = $("#metronome");
 var metronomeToggle = false;
 var metronome;
 var snare = new Wad(Wad.presets.snare);
+
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
 	var secondsPerBeat = 1 / beatsPerSecond;
     return secondsPerBeat * 1000.0;
 }
 
-metronomeButton.click(function(){
-	if (metronomeToggle === false){	
+function toggleMetronome() {
+
+if (metronomeToggle === false){	
 		metronome = setInterval(
 			function(){
 				snare.play();
@@ -71,6 +73,11 @@ metronomeButton.click(function(){
 		metronomeButton.text("start metronome");
 		metronomeToggle = false;
 	}
+}
+
+
+metronomeButton.click(function(){
+	toggleMetronome();
 })
 
 
@@ -78,7 +85,7 @@ metronomeButton.click(function(){
 function doNothing() {
 }
 
-var useConsole = true;
+var useConsole = false;
 function fauxConsole(str) {																					
 	if(useConsole)
 		document.getElementById("console").innerHTML=str;
@@ -100,7 +107,8 @@ function assert(condition, message) {
 ////////////
 
 var TapApp = {};
-TapApp.kit = "808";
+TapApp.kit = "baindus";
+TapApp.kits= ["808", "ba", "baindus"];
 TapApp.recording = [];
 
 // Program state / mode
@@ -117,6 +125,8 @@ TapApp.buttonArray = [];
 TapApp.stateButtonArray = [];
 TapApp.regionNodeArray = [];
 
+TapApp.gameStarted = false;
+
 
 //////////////////////
 //  Gameplay State  //
@@ -127,6 +137,7 @@ TapApp.currentPlayer = 0;
 TapApp.round = null;
 TapApp.roundResult = [];
 TapApp.currentRoundResult = null;
+TapApp.isSwitchingPlayer = false;
 
 var noteProto = {
    region : undefined,
@@ -168,6 +179,8 @@ TapApp.r1 = 50;	// radius used to designate "center" of region
 TapApp.r2 = 70;
 
 
+TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
+
 // TapApp.audioDirectory = "../mp3/";
 TapApp.audioDirectory = "mp3/";
 TapApp.patches = ["hightom", "hi_conga", "kick1", "kick2", "maracas", "open_hh", "rimshot", "snare", "tom1" ];
@@ -177,10 +190,10 @@ TapApp.sampleLoadDelay = 100;
 
 // Maybe convert these to objects later
 TapApp.learningStripData = [
-		[.3, "#F00", "kick1", 0], 
-		[.6, "#F80", "snare", 0],
-		[.8, "#0D0", "open_hh", 0], 
-		[ 1, "#00F", "hi_conga", 0]
+		[.3, "#F00", "taa", 0], 
+		[.6, "#F80", "taah", 0],
+		[.8, "#0D0", "toh", 0], 
+		[ 1, "#00F", "ting", 0]
 ];
 
 TapApp.patchHash = {
@@ -268,7 +281,7 @@ var buttonProto = {
 	}
 	
 };
-
+/*
 TapApp.learningButton = Object.create(buttonProto);
 TapApp.learningButton.init(10, 10, 40, 40, "#EE0", "#FF0");
 TapApp.learningButton.onpress = function() {
@@ -305,7 +318,7 @@ TapApp.playButton.onpress = function() {
 		console.log("At time " + TapApp.recording[s][0] + " play " + TapApp.recording[s][1]);
 	}
 };
-
+*/
 function setState(newState) {
 	console.log("Setting state from " + TapApp.state + " to " + newState);
 
@@ -334,6 +347,7 @@ function setState(newState) {
 		//startPlayback();
 	// stop playback
 	} 
+	/*
 	for(var i = 0; i < TapApp.stateButtonArray.length; i++) {
 		if(i === newState) {
 			TapApp.stateButtonArray[i].active = true;
@@ -341,16 +355,11 @@ function setState(newState) {
 			TapApp.stateButtonArray[i].active = false;
 		}
 	}
+	*/
 	TapApp.state = newState;
 	refresh();
 };
 
-
-TapApp.buttonArray.push(TapApp.learningButton);
-TapApp.buttonArray.push(TapApp.setupButton);
-TapApp.buttonArray.push(TapApp.recordButton);
-TapApp.buttonArray.push(TapApp.stopButton);
-TapApp.buttonArray.push(TapApp.playButton);
 
 TapApp.stateButtonArray.push(TapApp.learningButton);
 TapApp.stateButtonArray.push(TapApp.setupButton);
@@ -401,6 +410,11 @@ var regionProto = {
 	samples: [],
 	sampleCounter: 0,
 	numSamples: 0,
+
+	setPosition: function(x,y) {
+		this.x = x;
+		this.y = y;
+	},
 
 	display: function(ctx) {
 		ctx.fillStyle = this.color;
@@ -472,8 +486,7 @@ var regionProto = {
 	changeColor: function(rgb) {
 	},
 	deactivate: function() { 
-		this.active = false; 
-		//console.log("Deactivated region " + this.id); 
+		this.active = false;
 		refresh(); 
 	}
 }
@@ -572,12 +585,40 @@ function ensureRegionSet(){
 }
 
 
+function scaleDefaultPads() {
+	//todo:  assumes 4 pads.  should be more generic.
+
+	 var surface = document.getElementById("surface");
+	 var width = surface.width;
+	 var height = surface.height;
+
+	 var y = height/2;
+	 var x1 = width/8;
+	 var x2 = (width*7)/8;
+
+
+	 TapApp.regionSet.regionArray[0].setPosition(x1,y);
+	 TapApp.regionSet.regionArray[1].setPosition(x1+100,y);
+	 TapApp.regionSet.regionArray[2].setPosition(x2-100,y);
+	 TapApp.regionSet.regionArray[3].setPosition(x2,y);
+}
+
 function createDefaultPads() {
 	 ensureRegionSet();
-	 TapApp.regionSet.addTypedRegion(200,500,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
-	 TapApp.regionSet.addTypedRegion(300,500,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
-	 TapApp.regionSet.addTypedRegion(800,500,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
-	 TapApp.regionSet.addTypedRegion(900,500,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
+
+	 var surface = document.getElementById("surface");
+	 var width = surface.width;
+	 var height = surface.height;
+
+	 var y = height/2;
+	 var x1 = width/8;
+	 var x2 = (width*7)/8;
+
+
+	 TapApp.regionSet.addTypedRegion(x1,y,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
+	 TapApp.regionSet.addTypedRegion(x1+100,y,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
+	 TapApp.regionSet.addTypedRegion(x2-100,y,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
+	 TapApp.regionSet.addTypedRegion(x2,y,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
 }
 
 
@@ -693,9 +734,7 @@ var resize = function() {
 	var scaleX = surface.width / oldWidth;
 	var scaleY = surface.height / oldHeight;
 
-    //todo: make it work!
-	//if(TapApp.regionSet !== undefined)
-	//  TapApp.regionTree.scale(scaleX, scaleY);
+    scaleDefaultPads();
 
 	// handle changing radius size
 
@@ -705,13 +744,7 @@ var resize = function() {
 	refresh();
 }
 
-var refresh = function() {
-	surface = document.getElementById("surface");
-	var ctx = surface.getContext('2d');
-	ctx.clearRect(0, 0, surface.width, surface.height);
-	ctx.fillStyle = "#FFF";
-	ctx.fillRect(0, 0, surface.width, surface.height);
-
+function displayGame(ctx) {
 
 	if(TapApp.regionSet !== undefined)
 		TapApp.regionSet.display(ctx);
@@ -724,14 +757,44 @@ var refresh = function() {
 		TapApp.buttonArray[i].display(ctx);
 	}
 
-	indicate_state(TapApp.state, ctx, surface.width, surface.height);
+	indicate_state(TapApp.state, ctx, surface.width, surface.height);	
+}
 
+function displaySplash(ctx) {
+	ctx.fillStyle = "#AAA";
+	ctx.font = "64px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText("TAP BATTLE", surface.width/2, surface.height/2);		
+}
+
+var refresh = function() {
+	surface = document.getElementById("surface");
+	var ctx = surface.getContext('2d');
+	ctx.clearRect(0, 0, surface.width, surface.height);
+	ctx.fillStyle = "#FFF";
+	ctx.fillRect(0, 0, surface.width, surface.height);
+
+
+	if (!TapApp.gameStarted) {
+		displaySplash(ctx);
+	} else {
+		displayGame(ctx);	
+	}
 }
 
 // Indicators //
 
 var indicate_state = function(state, ctx) {
-	switch(state) {
+
+	if (!canTap())
+	{
+		ctx.fillStyle = "#888";
+		ctx.font = "32px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
+	}
+
+	/*switch(state) {
 		case TapApp.recording_state:
 			ctx.fillStyle = TapApp.recordButton.afCol;
 			ctx.beginPath();
@@ -779,12 +842,18 @@ var indicate_state = function(state, ctx) {
 	
 		default:
 			console.log("Unknown state " + state + " was indicated");
-	}
+	}*/
 };
 
 
 
 //returns false if done playing....
+
+function canTap()
+{
+	return !TapApp.isSwitchingPlayer;
+}
+
 function playNextNote()
 {
 	var roundResult = TapApp.roundResult[TapApp.playbackIndex];
@@ -850,14 +919,22 @@ function incrementRound()
 		if (TapApp.roundNumber === rounds)
 		{
 
-			console.log("Game is over here but we're going to just keep going for now");		
-			votingModal()
+			if (metronomeToggle) {
+				toggleMetronome();	
+			}
+
+			votingModal();
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
 			//runGameplayPlayback();
-
+			return;
 		}		
 	}	
+	TapApp.isSwitchingPlayer = true;
+	setTimeout(function() {
+		TapApp.isSwitchingPlayer = false;
+		refresh();
+	}, TapApp.nextTurnWaitTime);
 }
 
 function nextRound()
@@ -870,13 +947,15 @@ function nextRound()
 
 	console.log(players[TapApp.currentPlayer].name + "'s turn!");		
 
+	refresh();
+
 	startRound();
 }
 
 //todo: give this a better home
 function playRegionGameplayUpdate(region)
 {
-    if (TapApp.round !== undefined)
+    if (TapApp.round)
     {
     	if (TapApp.round.startTime === undefined)
     	{
@@ -931,14 +1010,14 @@ var handleKey = function(event) {
 	{
 		if (event.repeat) return;
 	}
-	console.log("Pressed key - " + event.keyCode);
 
 
     if (keyLookup[event.keyCode] !== undefined)
     {
+    	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
+
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
-    	console.log("Pressed key in array - " + regionIndex);
     	playRegion(region);
     }
 }
@@ -1075,6 +1154,7 @@ function startRound() {
 
 function startGame()
 {
+	TapApp.gameStarted = true;
 	TapApp.roundNumber = 0;
 	TapApp.currentPlayer = 0;
 	nextRound();
@@ -1140,7 +1220,7 @@ function restart(){
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
-setState(TapApp.freeplay_state)
+setState(TapApp.freeplay_state);
 resize();
 determineDateDelay();
  
