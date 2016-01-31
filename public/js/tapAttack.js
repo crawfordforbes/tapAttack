@@ -126,6 +126,7 @@ TapApp.stateButtonArray = [];
 TapApp.regionNodeArray = [];
 
 TapApp.gameStarted = false;
+TapApp.gameOver = false;
 
 
 //////////////////////
@@ -848,7 +849,6 @@ var indicate_state = function(state, ctx) {
 
 
 //returns false if done playing....
-
 function canTap()
 {
 	return !TapApp.isSwitchingPlayer;
@@ -923,6 +923,7 @@ function incrementRound()
 				toggleMetronome();	
 			}
 
+			TapApp.gameOver = true;
 			votingModal();
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
@@ -1015,7 +1016,7 @@ var handleKey = function(event) {
     if (keyLookup[event.keyCode] !== undefined)
     {
     	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
-
+    	if (TapApp.gameOver) return;
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
     	playRegion(region);
