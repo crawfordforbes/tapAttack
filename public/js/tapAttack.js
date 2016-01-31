@@ -657,14 +657,14 @@ function scaleDefaultPads() {
 function createDefaultPads() {
 	 ensureRegionSet();
 	 var colors = [
-		"#F80",
-		"#F80",
-		"#F80",
-		"#F00",
-		"#F00",
 		"#00F",
 		"#00F",
-		"#00F"
+		"#00F",
+		"#F60",
+		"#F60",
+		"#080",
+		"#080",
+		"#080",
 	 ];
 
 	 var surface = document.getElementById("surface");
