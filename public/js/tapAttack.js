@@ -14,12 +14,23 @@ var rounds = parseInt($("#numOfRounds").val());
 
 var playerProto = {
 	name : "",
+	img : undefined,
 	video : undefined
 };
 
-var players = [];
+
+function loadPlayerImages(img1, img2) {
+	players[0].img = new Image();
+	players[0].img.src = TapApp.imgDir + img1;
+	players[1].img = new Image();
+	players[1].img.src = TapApp.imgDir + img2;
+}
+
+var players = [{}, {}];
 
 var startButton = $("#startGame");
+
+var avatarImages = [ "avatar1.png", "avatar2.png" ];
 
 startButton.click(function(){
 	bpm = parseInt($("#bpm").val());
@@ -39,6 +50,8 @@ startButton.click(function(){
 	players.push(p1);
 	players.push(p2);	
 
+	loadPlayerImages(avatarImages[0], avatarImages[1]);
+
 	startGame();
 });
 
@@ -50,7 +63,7 @@ startButton.click(function(){
 var metronomeButton = $("#metronome");
 var metronomeToggle = false;
 var metronome;
-var snare = new Wad(Wad.presets.snare);
+var snare = new Wad(Wad.presets.hiHatClosed);
 
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
@@ -110,6 +123,8 @@ var TapApp = {};
 TapApp.kit = "baindus";
 TapApp.kits= ["808", "ba", "baindus"];
 TapApp.recording = [];
+
+TapApp.imgDir = "png/";
 
 // Program state / mode
 TapApp.learning_state = 0;
@@ -350,7 +365,7 @@ TapApp.playButton.onpress = function() {
 };
 */
 function setState(newState) {
-	console.log("Setting state from " + TapApp.state + " to " + newState);
+	// console.log("Setting state from " + TapApp.state + " to " + newState);
 
 	// learning -> non-learning: load samples
 	if(newState !== TapApp.learning_state && TapApp.state === TapApp.learning_state) {
@@ -555,8 +570,8 @@ var regionSetProto = {
 		newRegion.color = color;
 		newRegion.sampleName = sampleName ;
 		newRegion.id = this.regionArray.length;
-		console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
-			+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
+		//console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
+			//+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
 
 		this.regionArray.push(newRegion);		
 
@@ -803,18 +818,37 @@ function displayGame(ctx) {
 	if(TapApp.regionSet !== undefined)
 		TapApp.regionSet.display(ctx);
 
+	displayAvatar(players[TapApp.currentPlayer], ctx);
 
 //	indicate(TapApp.app_mode, ctx);  NEXT THING TO WORK ON is transitions between states
 
-
+/*
 	for(var i = 0; i < TapApp.buttonArray.length; i++) {
 		TapApp.buttonArray[i].display(ctx);
 	}
+*/
 
 	indicate_state(TapApp.state, ctx, surface.width, surface.height);	
 }
 
+function displayAvatar(player, ctx) {
+	var padding = 10;
+	var shadow = 4;
+	var imgSize = 64;
+	var textSize = imgSize * 3/4;
+	var spacing = imgSize / 4;
+	ctx.drawImage(player.img, padding, padding, imgSize, imgSize);
+	ctx.textAlign = "left";
+	ctx.textBaseline = "middle";
+	ctx.font = textSize + "px Arial";
+	ctx.fillStyle = "#000";
+	ctx.fillText(player.name, padding + shadow + imgSize + spacing, imgSize/2 + padding + shadow);		
+	ctx.fillStyle = "#FFF";
+	ctx.fillText(player.name, padding + imgSize + spacing, imgSize/2 + padding );		
+}
+
 function displaySplash(ctx) {
+	ctx.globalAlpha = 1;		// opacity of text, might have been messed up before?
 	ctx.fillStyle = "#000";
 	ctx.font = "64px Arial";
 	ctx.textAlign = "center";
@@ -871,7 +905,23 @@ var indicate_state = function(state, ctx) {
 	if (!canTap())
 	{
 		console.log("Surface width: " + surface.width);
-
+		var rectX = surface.width/4;
+		var rectY = surface.height/4;
+		var rectW = surface.width/2;
+		var rectH = surface.height/2;
+		ctx.globalAlpha = 0.8;
+		ctx.fillStyle = "#999";
+		ctx.strokeStyle = "#000";
+		ctx.fillRect(rectX, rectY, rectW, rectH);
+		ctx.globalAlpha = 1;
+		ctx.strokeRect(rectX, rectY, rectW, rectH);
+		ctx.fillStyle = "#FFF";
+		ctx.font = "64px Arial";
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
+		ctx.fillStyle = "#000";
+		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2-4, surface.height/2-4);		
 		displayCountdownText(ctx, TapApp.turnSwitchDisplay);
 	}
 
@@ -1127,7 +1177,7 @@ var handleKey = function(event) {
 	{
 		if (event.repeat) return;
 	}
-		console.log("Pressed key " + event.keyCode);
+		// console.log("Pressed key " + event.keyCode);
 
     if (keyLookup[event.keyCode] !== undefined)
     {
@@ -1354,6 +1404,5 @@ setState(TapApp.learning_state);
 createDefaultPads();
 setState(TapApp.freeplay_state);
 resize();
-determineDateDelay();
  
 
