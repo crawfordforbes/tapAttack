@@ -1225,6 +1225,7 @@ function startGame()
 	TapApp.gameStarted = true;
 	TapApp.roundNumber = 0;
 	TapApp.currentPlayer = 0;
+	toggleMetronome();
 	nextRound();
 }
 
