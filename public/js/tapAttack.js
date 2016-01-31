@@ -365,7 +365,7 @@ TapApp.playButton.onpress = function() {
 };
 */
 function setState(newState) {
-	console.log("Setting state from " + TapApp.state + " to " + newState);
+	// console.log("Setting state from " + TapApp.state + " to " + newState);
 
 	// learning -> non-learning: load samples
 	if(newState !== TapApp.learning_state && TapApp.state === TapApp.learning_state) {
@@ -570,8 +570,8 @@ var regionSetProto = {
 		newRegion.color = color;
 		newRegion.sampleName = sampleName ;
 		newRegion.id = this.regionArray.length;
-		console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
-			+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
+		//console.log("Created new pad " + newRegion.id + " at " + newRegion.x + ", " + newRegion.y 
+			//+ " with color " + newRegion.color + " and sample " + newRegion.sampleName);
 
 		this.regionArray.push(newRegion);		
 
@@ -839,12 +839,12 @@ function displayAvatar(player, ctx) {
 	var spacing = imgSize / 4;
 	ctx.drawImage(player.img, padding, padding, imgSize, imgSize);
 	ctx.textAlign = "left";
-	ctx.textBaseline = "hanging";
-	ctx.font = imgSize + "px Arial";
+	ctx.textBaseline = "middle";
+	ctx.font = textSize + "px Arial";
 	ctx.fillStyle = "#000";
-	ctx.fillText(player.name, padding + shadow + imgSize + spacing, padding + shadow);		
+	ctx.fillText(player.name, padding + shadow + imgSize + spacing, imgSize/2 + padding + shadow);		
 	ctx.fillStyle = "#FFF";
-	ctx.fillText(player.name, padding + imgSize + spacing, padding );		
+	ctx.fillText(player.name, padding + imgSize + spacing, imgSize/2 + padding );		
 }
 
 function displaySplash(ctx) {
@@ -1404,6 +1404,5 @@ setState(TapApp.learning_state);
 createDefaultPads();
 setState(TapApp.freeplay_state);
 resize();
-determineDateDelay();
  
 
