@@ -100,7 +100,8 @@ function assert(condition, message) {
 ////////////
 
 var TapApp = {};
-TapApp.kit = "808";
+TapApp.kit = "baindus";
+TapApp.kits= ["808", "ba", "baindus"];
 TapApp.recording = [];
 
 // Program state / mode
@@ -177,10 +178,10 @@ TapApp.sampleLoadDelay = 100;
 
 // Maybe convert these to objects later
 TapApp.learningStripData = [
-		[.3, "#F00", "kick1", 0], 
-		[.6, "#F80", "snare", 0],
-		[.8, "#0D0", "open_hh", 0], 
-		[ 1, "#00F", "hi_conga", 0]
+		[.3, "#F00", "taa", 0], 
+		[.6, "#F80", "taah", 0],
+		[.8, "#0D0", "toh", 0], 
+		[ 1, "#00F", "ting", 0]
 ];
 
 TapApp.patchHash = {
@@ -345,12 +346,6 @@ function setState(newState) {
 	refresh();
 };
 
-
-TapApp.buttonArray.push(TapApp.learningButton);
-TapApp.buttonArray.push(TapApp.setupButton);
-TapApp.buttonArray.push(TapApp.recordButton);
-TapApp.buttonArray.push(TapApp.stopButton);
-TapApp.buttonArray.push(TapApp.playButton);
 
 TapApp.stateButtonArray.push(TapApp.learningButton);
 TapApp.stateButtonArray.push(TapApp.setupButton);
