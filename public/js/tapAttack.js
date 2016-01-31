@@ -51,14 +51,16 @@ var metronomeButton = $("#metronome");
 var metronomeToggle = false;
 var metronome;
 var snare = new Wad(Wad.presets.snare);
+
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
 	var secondsPerBeat = 1 / beatsPerSecond;
     return secondsPerBeat * 1000.0;
 }
 
-metronomeButton.click(function(){
-	if (metronomeToggle === false){	
+function toggleMetronome() {
+
+if (metronomeToggle === false){	
 		metronome = setInterval(
 			function(){
 				snare.play();
@@ -71,6 +73,11 @@ metronomeButton.click(function(){
 		metronomeButton.text("start metronome");
 		metronomeToggle = false;
 	}
+}
+
+
+metronomeButton.click(function(){
+	toggleMetronome();
 })
 
 
@@ -78,7 +85,7 @@ metronomeButton.click(function(){
 function doNothing() {
 }
 
-var useConsole = true;
+var useConsole = false;
 function fauxConsole(str) {																					
 	if(useConsole)
 		document.getElementById("console").innerHTML=str;
@@ -129,6 +136,8 @@ TapApp.round = null;
 TapApp.roundResult = [];
 TapApp.currentRoundResult = null;
 
+TapApp.nextTurnStartTime = 0;
+
 var noteProto = {
    region : undefined,
    time : undefined
@@ -168,6 +177,8 @@ TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 TapApp.r1 = 50;	// radius used to designate "center" of region
 TapApp.r2 = 70;
 
+
+TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
 
 // TapApp.audioDirectory = "../mp3/";
 TapApp.audioDirectory = "mp3/";
@@ -269,7 +280,7 @@ var buttonProto = {
 	}
 	
 };
-
+/*
 TapApp.learningButton = Object.create(buttonProto);
 TapApp.learningButton.init(10, 10, 40, 40, "#EE0", "#FF0");
 TapApp.learningButton.onpress = function() {
@@ -306,7 +317,7 @@ TapApp.playButton.onpress = function() {
 		console.log("At time " + TapApp.recording[s][0] + " play " + TapApp.recording[s][1]);
 	}
 };
-
+*/
 function setState(newState) {
 	console.log("Setting state from " + TapApp.state + " to " + newState);
 
@@ -335,6 +346,7 @@ function setState(newState) {
 		//startPlayback();
 	// stop playback
 	} 
+	/*
 	for(var i = 0; i < TapApp.stateButtonArray.length; i++) {
 		if(i === newState) {
 			TapApp.stateButtonArray[i].active = true;
@@ -342,6 +354,7 @@ function setState(newState) {
 			TapApp.stateButtonArray[i].active = false;
 		}
 	}
+	*/
 	TapApp.state = newState;
 	refresh();
 };
@@ -467,8 +480,7 @@ var regionProto = {
 	changeColor: function(rgb) {
 	},
 	deactivate: function() { 
-		this.active = false; 
-		//console.log("Deactivated region " + this.id); 
+		this.active = false;
 		refresh(); 
 	}
 }
@@ -726,7 +738,16 @@ var refresh = function() {
 // Indicators //
 
 var indicate_state = function(state, ctx) {
-	switch(state) {
+
+	if (!canTap())
+	{
+		ctx.fillStyle = "#888";
+		ctx.font = "32px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
+	}
+
+	/*switch(state) {
 		case TapApp.recording_state:
 			ctx.fillStyle = TapApp.recordButton.afCol;
 			ctx.beginPath();
@@ -774,12 +795,19 @@ var indicate_state = function(state, ctx) {
 	
 		default:
 			console.log("Unknown state " + state + " was indicated");
-	}
+	}*/
 };
 
 
 
 //returns false if done playing....
+
+function canTap()
+{
+	var d = new Date();
+	return d.getTime() > TapApp.nextTurnStartTime;
+}
+
 function playNextNote()
 {
 	var roundResult = TapApp.roundResult[TapApp.playbackIndex];
@@ -845,14 +873,19 @@ function incrementRound()
 		if (TapApp.roundNumber === rounds)
 		{
 
-			console.log("Game is over here but we're going to just keep going for now");		
-			votingModal()
+			if (metronomeToggle) {
+				toggleMetronome();	
+			}
+
+			votingModal();
 			//HACK HACK HACK
 			setState(TapApp.playback_state);
 			//runGameplayPlayback();
-
+			return;
 		}		
 	}	
+	var d = new Date();
+	TapApp.nextTurnStartTime = d.getTime() + TapApp.nextTurnWaitTime;
 }
 
 function nextRound()
@@ -864,6 +897,14 @@ function nextRound()
 	TapApp.currentRoundResult.notes = [];
 
 	console.log(players[TapApp.currentPlayer].name + "'s turn!");		
+
+	refresh();
+
+	setTimeout(function() {
+			refresh(); 
+			}, 
+		TapApp.nextTurnWaitTime + 50
+	);
 
 	startRound();
 }
@@ -926,14 +967,14 @@ var handleKey = function(event) {
 	{
 		if (event.repeat) return;
 	}
-	console.log("Pressed key - " + event.keyCode);
 
 
     if (keyLookup[event.keyCode] !== undefined)
     {
+    	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
+
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
-    	console.log("Pressed key in array - " + regionIndex);
     	playRegion(region);
     }
 }
