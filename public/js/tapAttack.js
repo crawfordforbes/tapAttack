@@ -1167,10 +1167,10 @@ function votingModal() {
 	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
 	for(var i = 0; i < rounds; i++){
 
-		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" value="votePlayer0round' + i + '" name="round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" value="votePlayer1round' + i + '" name="round' + i + '"/>	</li></ul></li>'
+		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
 
 	}
-	modalString += '</ul><button id="submitVotes">Submit</button></div></div></div>'
+	modalString += '</ul><button id="submitVotes" onclick="chooseWinner()">Submit</button></div></div></div>'
 
 
 	$('#votingContainer').html(modalString);
@@ -1178,6 +1178,43 @@ function votingModal() {
     return false;
 
 }
+function chooseWinner() {
+	var p1score = 0;
+	var p2score = 0;
+	for(var i = 0; i < rounds; i++){
+
+		if($('input[name=votePlayer0Round' + i + ']:checked').val()){
+
+			p1score++
+		} else if($('input[name=votePlayer1Round' + i + ']:checked').val()){
+
+			p2score++
+		} else {
+			alert("please vote on all rounds");
+			return
+		}
+	}
+	if(p1score > p2score){
+		showWinner(1)
+	} else {
+		showWinner(2)
+	}
+}
+
+function showWinner(id){
+	$('#votingModal').modal('toggle');
+	var name = $("#player" + id).val();
+	var ytube = $("#player" + id + "Video").val();
+	var url = ytube.split("/")[3];
+
+	document.body.innerHTML ='<h2>CONGRATULATIONS ' + name +'</h2><iframe width="560" height="315" src="https://www.youtube.com/embed/' + url + '" frameborder="0" allowfullscreen></iframe><br /><button onclick="restart()">Play again</button>'
+
+	
+}
+function restart(){
+	window.location.reload();
+}
+
 ////////////
 //  main  //
 ////////////
