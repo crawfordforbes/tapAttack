@@ -52,6 +52,7 @@ var metronomeToggle = false;
 var metronome;
 var snare = new Wad(Wad.presets.snare);
 
+
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
 	var secondsPerBeat = 1 / beatsPerSecond;
@@ -1284,7 +1285,7 @@ function votingModal() {
 	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2 style="text-align: center;">VOTING</h2><ul style="list-style: none;">'
 	for(var i = 0; i < rounds; i++){
 		var x = i + 1;
-		modalString += '<li><h3>ROUND ' + x + '</h3><ul style="list-style: none;"><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
+		modalString += '<li><h3>ROUND ' + x + '</h3><ul style="list-style: none;"><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '" onclick="playbackRound(' + i + ', 0)">play</button><input style="margin-left: 10px;" type="radio" id="votePlayer0Round' + i + '" value="0" name="votePlayer0Round' + i + '">	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '" onclick="playbackRound(' + i + ', 1)">play</button><input style="margin-left: 10px;" type="radio" id="votePlayer1Round' + i + '" value="1" name="votePlayer1Round' + i + '"/>	</li></ul></li>'
 
 	}
 	modalString += '</ul><button id="submitVotes" onclick="chooseWinner()">Submit</button></div></div></div>'
@@ -1324,7 +1325,7 @@ function showWinner(id){
 	var ytube = $("#player" + id + "Video").val();
 	var url = ytube.split("/")[3];
 
-	document.body.innerHTML ='<h2>CONGRATULATIONS ' + name +'</h2><iframe width="560" height="315" src="https://www.youtube.com/embed/' + url + '" frameborder="0" allowfullscreen></iframe><br /><button onclick="restart()">Play again</button>'
+	document.body.innerHTML ='<h2 style="text-align: center;">CONGRATULATIONS ' + name +'</h2><iframe style="margin: 20px auto 20px auto;" width="560" height="315" src="https://www.youtube.com/embed/' + url + '" frameborder="0" allowfullscreen></iframe><br /><button style="margin: auto;" onclick="restart()">Play again</button>'
 
 	
 }
