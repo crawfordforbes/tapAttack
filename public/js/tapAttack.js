@@ -125,6 +125,8 @@ TapApp.buttonArray = [];
 TapApp.stateButtonArray = [];
 TapApp.regionNodeArray = [];
 
+TapApp.gameStarted = false;
+
 
 //////////////////////
 //  Gameplay State  //
@@ -135,8 +137,7 @@ TapApp.currentPlayer = 0;
 TapApp.round = null;
 TapApp.roundResult = [];
 TapApp.currentRoundResult = null;
-
-TapApp.nextTurnStartTime = 0;
+TapApp.isSwitchingPlayer = false;
 
 var noteProto = {
    region : undefined,
@@ -743,13 +744,7 @@ var resize = function() {
 	refresh();
 }
 
-var refresh = function() {
-	surface = document.getElementById("surface");
-	var ctx = surface.getContext('2d');
-	ctx.clearRect(0, 0, surface.width, surface.height);
-	ctx.fillStyle = "#FFF";
-	ctx.fillRect(0, 0, surface.width, surface.height);
-
+function displayGame(ctx) {
 
 	if(TapApp.regionSet !== undefined)
 		TapApp.regionSet.display(ctx);
@@ -762,8 +757,29 @@ var refresh = function() {
 		TapApp.buttonArray[i].display(ctx);
 	}
 
-	indicate_state(TapApp.state, ctx, surface.width, surface.height);
+	indicate_state(TapApp.state, ctx, surface.width, surface.height);	
+}
 
+function displaySplash(ctx) {
+	ctx.fillStyle = "#AAA";
+	ctx.font = "64px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText("TAP BATTLE", surface.width/2, surface.height/2);		
+}
+
+var refresh = function() {
+	surface = document.getElementById("surface");
+	var ctx = surface.getContext('2d');
+	ctx.clearRect(0, 0, surface.width, surface.height);
+	ctx.fillStyle = "#FFF";
+	ctx.fillRect(0, 0, surface.width, surface.height);
+
+
+	if (!TapApp.gameStarted) {
+		displaySplash(ctx);
+	} else {
+		displayGame(ctx);	
+	}
 }
 
 // Indicators //
@@ -835,8 +851,7 @@ var indicate_state = function(state, ctx) {
 
 function canTap()
 {
-	var d = new Date();
-	return d.getTime() > TapApp.nextTurnStartTime;
+	return !TapApp.isSwitchingPlayer;
 }
 
 function playNextNote()
@@ -915,8 +930,11 @@ function incrementRound()
 			return;
 		}		
 	}	
-	var d = new Date();
-	TapApp.nextTurnStartTime = d.getTime() + TapApp.nextTurnWaitTime;
+	TapApp.isSwitchingPlayer = true;
+	setTimeout(function() {
+		TapApp.isSwitchingPlayer = false;
+		refresh();
+	}, TapApp.nextTurnWaitTime);
 }
 
 function nextRound()
@@ -930,12 +948,6 @@ function nextRound()
 	console.log(players[TapApp.currentPlayer].name + "'s turn!");		
 
 	refresh();
-
-	setTimeout(function() {
-			refresh(); 
-			}, 
-		TapApp.nextTurnWaitTime + 50
-	);
 
 	startRound();
 }
@@ -1142,6 +1154,7 @@ function startRound() {
 
 function startGame()
 {
+	TapApp.gameStarted = true;
 	TapApp.roundNumber = 0;
 	TapApp.currentPlayer = 0;
 	nextRound();
