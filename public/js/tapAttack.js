@@ -63,7 +63,7 @@ startButton.click(function(){
 var metronomeButton = $("#metronome");
 var metronomeToggle = false;
 var metronome;
-var snare = new Wad(Wad.presets.snare);
+var snare = new Wad(Wad.presets.hiHatClosed);
 
 function getMetronomeMilliseconds() {
 	var beatsPerSecond = bpm / 60;
