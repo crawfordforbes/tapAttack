@@ -128,6 +128,7 @@ TapApp.regionNodeArray = [];
 TapApp.gameStarted = false;
 TapApp.gameOver = false;
 
+TapApp.backgroundLoaded = false;
 
 //////////////////////
 //  Gameplay State  //
@@ -179,8 +180,10 @@ TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 TapApp.r1 = 40;	// radius used to designate "center" of region
 TapApp.r2 = 60;
 
-
 TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
+
+
+TapApp.backgroundImage = null;
 
 // TapApp.audioDirectory = "../mp3/";
 TapApp.audioDirectory = "mp3/";
@@ -813,10 +816,12 @@ function displayGame(ctx) {
 }
 
 function displaySplash(ctx) {
-	ctx.fillStyle = "#AAA";
+	ctx.fillStyle = "#000";
 	ctx.font = "64px Arial";
 	ctx.textAlign = "center";
 	ctx.fillText("TAP BATTLE", surface.width/2, surface.height/2);		
+	ctx.fillStyle = "#EEE";
+	ctx.fillText("TAP BATTLE", surface.width/2-4, surface.height/2-4);			
 }
 
 var refresh = function() {
@@ -825,6 +830,11 @@ var refresh = function() {
 	ctx.clearRect(0, 0, surface.width, surface.height);
 	ctx.fillStyle = "#FFF";
 	ctx.fillRect(0, 0, surface.width, surface.height);
+
+	if (TapApp.backgroundLoaded)
+	{
+		ctx.drawImage(TapApp.backgroundImage, 0,0, surface.width, surface.height);
+	}
 
 
 	if (!TapApp.gameStarted) {
@@ -856,6 +866,8 @@ var indicate_state = function(state, ctx) {
 		ctx.textAlign = "center";
 		ctx.textBaseline = "middle";
 		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
+		ctx.fillStyle = "#EEE";
+		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2-4, surface.height/2-4);		
 	}
 
 	/*switch(state) {
@@ -1282,9 +1294,22 @@ function restart(){
 	window.location.reload();
 }
 
+
+function loadBackgroundImage() {
+
+	TapApp.backgroundImage =  new Image();
+
+    TapApp.backgroundImage.onload = function() {
+    	TapApp.backgroundLoaded = true;    
+    	refresh();
+    };
+    TapApp.backgroundImage.src = 'png/bg-checkerboard.png';
+}
+
 ////////////
 //  main  //
 ////////////
+loadBackgroundImage();
 initializeLearningStrips(TapApp.samplesPerRegion);
 setState(TapApp.learning_state);
 createDefaultPads();
