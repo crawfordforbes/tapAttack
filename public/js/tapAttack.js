@@ -174,8 +174,8 @@ TapApp.button_delay = 100;
 TapApp.threshold = 70;  //  larger than the radius to be nice, we don't want to accidentally make a new one or miss a tap
 TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 
-TapApp.r1 = 50;	// radius used to designate "center" of region
-TapApp.r2 = 70;
+TapApp.r1 = 40;	// radius used to designate "center" of region
+TapApp.r2 = 60;
 
 
 TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
@@ -192,8 +192,32 @@ TapApp.learningStripData = [
 		[.3, "#F00", "taa", 0], 
 		[.6, "#F80", "taah", 0],
 		[.8, "#0D0", "toh", 0], 
-		[ 1, "#00F", "ting", 0]
+		[ 1, "#00F", "tosh", 0]
 ];
+
+TapApp.sampleBank = [
+	["808", [ "hi_conga", "kick1", "snare", "hightom" ]],
+	["baindus", [ 
+		"tosh",
+		"tosh",
+		"tosh",
+		"snop",
+		"snop",
+		"taa",
+		"taa",
+		"taa",
+		"snap", 	
+		"taah", 
+		"taa", 
+		"snop", 
+		"tosh", 
+		"ting", 
+		"toh",
+		"ting"
+	 ]
+	]
+];
+
 
 TapApp.patchHash = {
 	"hi tom": "hightom", 
@@ -213,7 +237,10 @@ TapApp.playbackRate = 10;  // how long the callback waits before calling itself 
 var hexDigits = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ];
 function toHex(i) { return hexDigits[Math.floor(i/16)] + hexDigits[i%16]; }
 
-function rgb(red, green, blue) { return "#" + toHex(red) + toHex(green) + toHex(blue); }
+function rgb(red, green, blue) { return "#" 
+		+ toHex(Math.floor(red)) 
+		+ toHex(Math.floor(green)) 
+		+ toHex(Math.floor(blue)); }
 
 function arbitraryColor() {
 	var color = "#";
@@ -581,10 +608,22 @@ function ensureRegionSet(){
 
 function createDefaultPads() {
 	 ensureRegionSet();
-	 TapApp.regionSet.addTypedRegion(200,500,TapApp.learningStripData[0][1], TapApp.learningStripData[0][2]);
-	 TapApp.regionSet.addTypedRegion(300,500,TapApp.learningStripData[1][1], TapApp.learningStripData[1][2]);
-	 TapApp.regionSet.addTypedRegion(800,500,TapApp.learningStripData[2][1], TapApp.learningStripData[2][2]);
-	 TapApp.regionSet.addTypedRegion(900,500,TapApp.learningStripData[3][1], TapApp.learningStripData[3][2]);
+	 var colors = [
+		"#F80",
+		"#F80",
+		"#F80",
+		"#F00",
+		"#F00",
+		"#00F",
+		"#00F",
+		"#00F"
+	 ]
+	 for(var i = 0; i < 8; i++) {
+	 TapApp.regionSet.addTypedRegion((200+200*Math.floor(i/4)+100*i),400,
+			colors[i],
+			TapApp.sampleBank[1][1][i]
+	 );
+	}
 }
 
 
@@ -957,17 +996,21 @@ function playRegion(region)
 
 //set default keys
 var keyLookup = [];
-keyLookup[68] = 0;
-keyLookup[70] = 1;
-keyLookup[74] = 2;
-keyLookup[75] = 3;
+keyLookup[65] = 0;
+keyLookup[83] = 1;
+keyLookup[68] = 2;
+keyLookup[70] = 3;
+keyLookup[74] = 4;
+keyLookup[75] = 5;
+keyLookup[76] = 6;
+keyLookup[59] = 7;
 
 var handleKey = function(event) {
 	if (event.repeat !== undefined)
 	{
 		if (event.repeat) return;
 	}
-
+		console.log("Pressed key " + event.keyCode);
 
     if (keyLookup[event.keyCode] !== undefined)
     {
