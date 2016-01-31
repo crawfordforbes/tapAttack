@@ -11,6 +11,12 @@
 var bpm = parseInt($("#bpm").val());
 var measures = parseInt($("#numOfMeasures").val());
 var rounds = parseInt($("#numOfRounds").val());
+
+var playerProto = {
+	name : "",
+	video : undefined
+};
+
 var players = [];
 
 var startButton = $("#startGame");
@@ -21,8 +27,19 @@ startButton.click(function(){
 	rounds = parseInt($("#numOfRounds").val());
 
 	players = [];
-	players.push($("#player1").val());
-	players.push($("#player2").val());	
+
+	var p1 = Object.create(playerProto);
+	p1.name = $("#player1").val();
+	p1.video = $("#player1Video").val();
+
+	var p2 = Object.create(playerProto);
+	p2.name = $("#player2").val();
+	p2.video = $("#player2Video").val();
+
+	players.push(p1);
+	players.push(p2);	
+
+	startGame();
 });
 
 /////////////////
@@ -851,7 +868,7 @@ function nextRound()
 	TapApp.currentRoundResult.round = TapApp.roundNumber;
 	TapApp.currentRoundResult.notes = [];
 
-	console.log(players[TapApp.currentPlayer] + "'s turn!");		
+	console.log(players[TapApp.currentPlayer].name + "'s turn!");		
 
 	startRound();
 }
@@ -1053,7 +1070,7 @@ function handleXYOff(x, y) {
 function startRound() {
 	TapApp.round = Object.create(roundProto);
 
-	$(".currentPlayer").text(players[TapApp.currentPlayer])
+	$(".currentPlayer").text(players[TapApp.currentPlayer].name)
 }
 
 function startGame()
@@ -1068,7 +1085,7 @@ function votingModal() {
 
 	var modalString = '<div id="votingModal" class="modal fade" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><h2>VOTING</h2><ul>'
 	for(var i = 0; i < rounds; i++){
-		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0] + ': </p>		<button class="playFinal" id="player0round' + i + '">play</button>	</li>	<li>		<p>' + players[1] + ': </p>		<button class="playFinal" id="player1round' + i + '">play</button>	</li></ul><radiogroup>	<radio id="votePlayer0round' + i + '" label="' + players[0] + '"/>	<radio id="votePlayer1round' + i + '" label="' + players[1] + '"/></radiogroup></li>'
+		modalString += '<li><h3>ROUND ' + i + '</h3><ul><li>		<p>' + players[0].name + ': </p>		<button class="playFinal" id="player0round' + i + '">play</button>	</li>	<li>		<p>' + players[1].name + ': </p>		<button class="playFinal" id="player1round' + i + '">play</button>	</li></ul><radiogroup>	<radio id="votePlayer0round' + i + '" label="' + players[0].name + '"/>	<radio id="votePlayer1round' + i + '" label="' + players[1].name + '"/></radiogroup></li>'
 	}
 	modalString += '</ul><button id="submitVotes">Submit</button></div></div></div>'
 
@@ -1086,6 +1103,5 @@ createDefaultPads();
 setState(TapApp.freeplay_state)
 resize();
 determineDateDelay();
-
-startGame();
+ 
 
