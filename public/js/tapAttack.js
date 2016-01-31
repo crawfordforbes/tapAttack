@@ -1133,6 +1133,7 @@ var handleKey = function(event) {
     {
     	if (!canTap()) return; //we're switching rounds or something.... disable tapping!
     	if (TapApp.gameOver) return;
+    	if (!TapApp.gameStarted) return;
     	var regionIndex = keyLookup[event.keyCode];
     	var region = TapApp.regionSet.regionArray[regionIndex];
     	playRegion(region);
