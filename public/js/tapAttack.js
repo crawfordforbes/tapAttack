@@ -130,6 +130,8 @@ TapApp.gameOver = false;
 
 TapApp.backgroundLoaded = false;
 
+TapApp.turnSwitchDisplay = "";
+
 //////////////////////
 //  Gameplay State  //
 //////////////////////
@@ -179,9 +181,6 @@ TapApp.thresholdSquared = TapApp.threshold * TapApp.threshold;
 
 TapApp.r1 = 40;	// radius used to designate "center" of region
 TapApp.r2 = 60;
-
-TapApp.nextTurnWaitTime = 2500; //milliseconds to wait while the turn switches.
-
 
 TapApp.backgroundImage = null;
 
@@ -846,28 +845,34 @@ var refresh = function() {
 
 // Indicators //
 
+function displayCountdownText(ctx, text) {
+	var rectX = surface.width/4;
+	var rectY = surface.height/4;
+	var rectW = surface.width/2;
+	var rectH = surface.height/2;
+	ctx.globalAlpha = 0.8;
+	ctx.fillStyle = "#999";
+	ctx.strokeStyle = "#000";
+	ctx.fillRect(rectX, rectY, rectW, rectH);
+	ctx.globalAlpha = 1;
+	ctx.strokeRect(rectX, rectY, rectW, rectH);
+	ctx.fillStyle = "#FFF";
+	ctx.font = "64px Arial";
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	ctx.fillStyle = "#000";
+	ctx.fillText(text, surface.width/2, surface.height/2);		
+	ctx.fillStyle = "#EEE";
+	ctx.fillText(text, surface.width/2-4, surface.height/2-4);		
+}
+
 var indicate_state = function(state, ctx) {
 
 	if (!canTap())
 	{
 		console.log("Surface width: " + surface.width);
-		var rectX = surface.width/4;
-		var rectY = surface.height/4;
-		var rectW = surface.width/2;
-		var rectH = surface.height/2;
-		ctx.globalAlpha = 0.8;
-		ctx.fillStyle = "#999";
-		ctx.strokeStyle = "#000";
-		ctx.fillRect(rectX, rectY, rectW, rectH);
-		ctx.globalAlpha = 1;
-		ctx.strokeRect(rectX, rectY, rectW, rectH);
-		ctx.fillStyle = "#FFF";
-		ctx.font = "64px Arial";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2, surface.height/2);		
-		ctx.fillStyle = "#EEE";
-		ctx.fillText(players[TapApp.currentPlayer].name + "'s turn!", surface.width/2-4, surface.height/2-4);		
+
+		displayCountdownText(ctx, TapApp.turnSwitchDisplay);
 	}
 
 	/*switch(state) {
@@ -1007,10 +1012,39 @@ function incrementRound()
 		}		
 	}	
 	TapApp.isSwitchingPlayer = true;
+	TapApp.turnSwitchDisplay = players[TapApp.currentPlayer].name + "'s turn!";
+
+	var waitLen = getMetronomeMilliseconds() * 4 + 1000;
+	
 	setTimeout(function() {
 		TapApp.isSwitchingPlayer = false;
+
 		refresh();
-	}, TapApp.nextTurnWaitTime);
+	}, waitLen);
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "3";
+
+		refresh();
+	}, 1000);
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "2";
+		
+		refresh();
+	}, 1000 + getMetronomeMilliseconds());	
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "1";
+		
+		refresh();
+	}, 1000 + getMetronomeMilliseconds() *2);		
+
+	setTimeout(function() {
+		TapApp.turnSwitchDisplay = "TAP!";
+		
+		refresh();
+	}, 1000 + getMetronomeMilliseconds() * 3);		
 }
 
 function nextRound()
@@ -1084,13 +1118,14 @@ keyLookup[74] = 4;
 keyLookup[75] = 5;
 keyLookup[76] = 6;
 keyLookup[59] = 7;
+keyLookup[186] = 7;
 
 var handleKey = function(event) {
 	if (event.repeat !== undefined)
 	{
 		if (event.repeat) return;
 	}
-		//console.log("Pressed key " + event.keyCode);
+		console.log("Pressed key " + event.keyCode);
 
     if (keyLookup[event.keyCode] !== undefined)
     {
