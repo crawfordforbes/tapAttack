@@ -346,11 +346,15 @@ function setState(newState) {
 };
 
 
+/*
+
 TapApp.buttonArray.push(TapApp.learningButton);
 TapApp.buttonArray.push(TapApp.setupButton);
 TapApp.buttonArray.push(TapApp.recordButton);
 TapApp.buttonArray.push(TapApp.stopButton);
 TapApp.buttonArray.push(TapApp.playButton);
+
+*/
 
 TapApp.stateButtonArray.push(TapApp.learningButton);
 TapApp.stateButtonArray.push(TapApp.setupButton);
